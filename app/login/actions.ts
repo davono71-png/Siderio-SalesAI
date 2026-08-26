@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 
 export async function signIn(
@@ -9,6 +10,12 @@ export async function signIn(
 ): Promise<{ error: string | null }> {
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
+
+  const cookieStore = await cookies();
+  for (const c of cookieStore.getAll()) {
+    const bad = [...c.value].some((ch) => ch.charCodeAt(0) > 255);
+    console.error("cookie:", c.name, "len:", c.value.length, "bad-char:", bad);
+  }
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
