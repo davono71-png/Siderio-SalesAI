@@ -32,7 +32,7 @@ Formato: data, decisione, chi l'ha presa, note. Una volta presa, una decisione q
 
 Applicata la migrazione `sales_ai_schema` sul progetto Supabase condiviso `Siderio-Suite_2`: schema `sales_ai` con tabelle `offer_local_state`/`offer_analysis` e le funzioni `SECURITY DEFINER` `get_offer_context`/`search_offers` (nessuna tabella `public.*` di Suite toccata o concessa direttamente). Scaffolding applicativo Next.js creato e pushato su questo branch, build di produzione verificata.
 
-**Non ancora fatto**: promozione a `main`/dominio di produzione Vercel (`siderio-sales-ai.vercel.app`) — resta da confermare esplicitamente, vedi il messaggio di chiusura di questa sessione.
+**26/08/2026, aggiornamento**: confermato da Davide ("fai il merge su main") — fast-forward di `main` sul branch di sviluppo e push. Deploy di produzione riuscito, `siderio-sales-ai.vercel.app` serve ora la prima versione reale.
 
 ## Punti aperti dopo questa revisione
 
