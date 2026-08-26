@@ -10,11 +10,6 @@ export async function signIn(
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
 
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    console.error("Configurazione Supabase mancante: NEXT_PUBLIC_SUPABASE_URL o NEXT_PUBLIC_SUPABASE_ANON_KEY non impostate.");
-    return { error: "Configurazione mancante lato server (variabili Supabase). Contatta chi ha in carico il deploy." };
-  }
-
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
