@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { signIn } from "./actions";
+import { Logo } from "@/components/Logo";
 
 export default function LoginPage() {
   const [state, formAction, pending] = useActionState<{ error: string | null }, FormData>(signIn, {
@@ -9,32 +10,9 @@ export default function LoginPage() {
   });
 
   return (
-    <div
-      style={{
-        width: "100%",
-        minHeight: "100vh",
-        background: "var(--bg)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <div style={{ width: 400, display: "flex", flexDirection: "column", gap: 26 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontWeight: 800, letterSpacing: "0.08em", fontSize: 19 }}>SIDERIO</span>
-          <span
-            style={{
-              fontSize: 11,
-              background: "var(--accent-soft)",
-              color: "var(--accent)",
-              padding: "5px 9px",
-              borderRadius: 999,
-              fontWeight: 700,
-            }}
-          >
-            SALES AI
-          </span>
-        </div>
+    <div className="login-shell">
+      <div className="login-card">
+        <Logo variant="light" size={30} />
 
         <form
           action={formAction}

@@ -1,5 +1,9 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import { signOut } from "@/app/actions";
+import { Logo } from "./Logo";
 import {
   SearchIcon,
   FileIcon,
@@ -8,6 +12,8 @@ import {
   BuildingIcon,
   GridIcon,
   GearIcon,
+  MenuIcon,
+  CloseIcon,
 } from "./icons";
 
 function NavItem({
@@ -82,45 +88,9 @@ function NavGroup({ title, children }: { title: string; children: React.ReactNod
   );
 }
 
-export function Sidebar({
-  active,
-  userLabel,
-}: {
-  active: "cerca" | "offerta";
-  userLabel: string;
-}) {
-  const initial = userLabel.trim().charAt(0).toUpperCase() || "?";
-
+function SidebarNav({ active }: { active: "cerca" | "offerta" }) {
   return (
-    <aside
-      style={{
-        width: 250,
-        flex: "none",
-        background: "var(--dark)",
-        color: "#fff",
-        padding: "24px 18px",
-        display: "flex",
-        flexDirection: "column",
-        gap: 26,
-        minHeight: "100vh",
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 4px" }}>
-        <span style={{ fontWeight: 800, letterSpacing: "0.08em", fontSize: 16 }}>SIDERIO</span>
-        <span
-          style={{
-            fontSize: 10,
-            background: "rgba(255,255,255,.12)",
-            color: "#ddd",
-            padding: "4px 8px",
-            borderRadius: 999,
-            fontWeight: 700,
-          }}
-        >
-          SALES AI
-        </span>
-      </div>
-
+    <>
       <NavGroup title="OPERATIVO">
         <NavItem
           href="/ricerca"
@@ -142,53 +112,159 @@ export function Sidebar({
         <NavItem icon={<ClockIcon size={16} />} label="Storico valutazioni" soonTag="FASE 2" />
         <NavItem icon={<GearIcon size={16} />} label="Impostazioni" />
       </NavGroup>
+    </>
+  );
+}
 
-      <div
+function UserFooter({ userLabel }: { userLabel: string }) {
+  const initial = userLabel.trim().charAt(0).toUpperCase() || "?";
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 10,
+        paddingTop: 12,
+        borderTop: "1px solid #2f2f2f",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: "50%",
+            background: "#fff",
+            color: "#111",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontWeight: 800,
+            fontSize: 13,
+          }}
+        >
+          {initial}
+        </div>
+        <span style={{ fontSize: 13, fontWeight: 600 }}>{userLabel}</span>
+      </div>
+      <form action={signOut}>
+        <button
+          type="submit"
+          style={{
+            background: "none",
+            border: "none",
+            color: "#8a8a8a",
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: "pointer",
+            padding: "0 2px",
+          }}
+        >
+          Esci
+        </button>
+      </form>
+    </div>
+  );
+}
+
+export function Sidebar({
+  active,
+  userLabel,
+}: {
+  active: "cerca" | "offerta";
+  userLabel: string;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      {/* Sidebar fissa, desktop */}
+      <aside
+        className="sidebar-desktop"
         style={{
-          marginTop: "auto",
-          display: "flex",
+          width: 250,
+          flex: "none",
+          background: "var(--dark)",
+          color: "#fff",
+          padding: "24px 18px",
           flexDirection: "column",
-          gap: 10,
-          paddingTop: 12,
-          borderTop: "1px solid #2f2f2f",
+          gap: 26,
+          minHeight: "100vh",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: "50%",
-              background: "#fff",
-              color: "#111",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontWeight: 800,
-              fontSize: 13,
-            }}
-          >
-            {initial}
-          </div>
-          <span style={{ fontSize: 13, fontWeight: 600 }}>{userLabel}</span>
+        <div style={{ padding: "0 4px" }}>
+          <Logo variant="dark" />
         </div>
-        <form action={signOut}>
-          <button
-            type="submit"
-            style={{
-              background: "none",
-              border: "none",
-              color: "#8a8a8a",
-              fontSize: 12,
-              fontWeight: 600,
-              cursor: "pointer",
-              padding: "0 2px",
-            }}
-          >
-            Esci
-          </button>
-        </form>
+        <SidebarNav active={active} />
+        <div style={{ marginTop: "auto" }}>
+          <UserFooter userLabel={userLabel} />
+        </div>
+      </aside>
+
+      {/* Barra superiore, mobile */}
+      <div
+        className="topbar-mobile"
+        style={{
+          alignItems: "center",
+          justifyContent: "space-between",
+          background: "var(--dark)",
+          color: "#fff",
+          padding: "14px 16px",
+          position: "sticky",
+          top: 0,
+          zIndex: 20,
+        }}
+      >
+        <Logo variant="dark" size={22} />
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          aria-label="Apri menu"
+          style={{ background: "none", border: "none", color: "#fff", padding: 6, cursor: "pointer", display: "flex" }}
+        >
+          <MenuIcon size={22} />
+        </button>
       </div>
-    </aside>
+
+      {/* Drawer mobile */}
+      <div
+        className={`drawer-overlay${open ? " open" : ""}`}
+        style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", zIndex: 30 }}
+        onClick={() => setOpen(false)}
+      >
+        <aside
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            width: "82%",
+            maxWidth: 300,
+            height: "100%",
+            background: "var(--dark)",
+            color: "#fff",
+            padding: "20px 18px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 24,
+            overflowY: "auto",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <Logo variant="dark" />
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              aria-label="Chiudi menu"
+              style={{ background: "none", border: "none", color: "#fff", padding: 6, cursor: "pointer", display: "flex" }}
+            >
+              <CloseIcon size={20} />
+            </button>
+          </div>
+          <SidebarNav active={active} />
+          <div style={{ marginTop: "auto" }}>
+            <UserFooter userLabel={userLabel} />
+          </div>
+        </aside>
+      </div>
+    </>
   );
 }

@@ -66,3 +66,89 @@ input {
   font-weight: 800;
   color: var(--text);
 }
+
+/* ---- Layout responsivo ---- */
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  min-width: 0;
+  padding: 26px 32px 50px;
+}
+
+.offer-grid {
+  display: grid;
+  grid-template-columns: 1.55fr 0.8fr;
+  gap: 18px;
+  align-items: start;
+}
+
+.field-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 24px;
+}
+
+.sidebar-desktop {
+  display: flex;
+}
+
+.topbar-mobile {
+  display: none;
+}
+
+.drawer-overlay {
+  display: none;
+}
+
+@media (max-width: 880px) {
+  .app-shell {
+    flex-direction: column;
+  }
+
+  .main-content {
+    padding: 18px 16px 40px;
+  }
+
+  .offer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .field-grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar-desktop {
+    display: none;
+  }
+
+  .topbar-mobile {
+    display: flex;
+  }
+
+  .drawer-overlay.open {
+    display: block;
+  }
+}
+
+.login-shell {
+  width: 100%;
+  min-height: 100vh;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+.login-card {
+  width: 400px;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}

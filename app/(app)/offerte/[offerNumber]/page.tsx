@@ -111,10 +111,10 @@ export default async function OffertaPage({
   ].filter(Boolean) as Array<{ label: string; date: string }>;
 
   return (
-    <div style={{ display: "flex" }}>
+    <div className="app-shell">
       <Sidebar active="offerta" userLabel={userLabel} />
 
-      <main style={{ flex: 1, padding: "26px 32px 50px", minWidth: 0, display: "flex", flexDirection: "column", gap: 18 }}>
+      <main className="main-content" style={{ display: "flex", flexDirection: "column", gap: 18 }}>
         <a
           href="/ricerca"
           style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--muted)", fontWeight: 600 }}
@@ -123,7 +123,17 @@ export default async function OffertaPage({
           Torna alla ricerca
         </a>
 
-        <div className="panel" style={{ padding: "22px 26px", display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+        <div
+          className="panel"
+          style={{
+            padding: "22px 26px",
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 16,
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+          }}
+        >
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <span style={{ fontSize: 19, fontWeight: 800, letterSpacing: "-0.01em" }}>#{ctx.offer_number}</span>
@@ -153,14 +163,14 @@ export default async function OffertaPage({
           </div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1.55fr .8fr", gap: 18, alignItems: "start" }}>
+        <div className="offer-grid">
           <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
             <div className="panel" style={{ padding: "20px 22px", display: "flex", flexDirection: "column", gap: 16 }}>
               <div className="section-title">
                 <BuildingIcon size={16} />
                 Cliente e contatto
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px 24px" }}>
+              <div className="field-grid-2">
                 <Field label="Ragione sociale" value={ctx.client?.company_name ?? ctx.client?.display_name ?? "—"} />
                 <Field label="Referente" value={ctx.client?.contact_person ?? "—"} />
                 <Field label="Email" value={ctx.client?.email ?? "—"} />
@@ -207,7 +217,7 @@ export default async function OffertaPage({
                       {e.direzione === "in" ? <MailInIcon size={14} /> : <MailOutIcon size={14} />}
                     </span>
                     <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
-                      <div style={{ display: "flex", justifyContent: "space-between" }}>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "space-between" }}>
                         <span style={{ fontSize: 13, fontWeight: 700 }}>{e.da ?? "—"}</span>
                         <span style={{ fontSize: 11, color: "var(--muted)", fontWeight: 600 }}>{dateFmt(e.created_at)}</span>
                       </div>
@@ -250,7 +260,7 @@ export default async function OffertaPage({
                         background: i === timeline.length - 1 ? "var(--accent)" : "var(--dark)",
                       }}
                     />
-                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, justifyContent: "space-between" }}>
                       <span style={{ fontSize: 13 }}>{t.label}</span>
                       <span style={{ fontSize: 11, color: "var(--muted)", fontWeight: 700 }}>{dateFmt(t.date)}</span>
                     </div>
@@ -317,7 +327,7 @@ export default async function OffertaPage({
               </select>
             </LabeledField>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div className="field-grid-2">
               <LabeledField label="Chi deve agire">
                 <input name="action_owner" defaultValue={state.action_owner ?? ""} className="field-box" style={{ width: "100%" }} />
               </LabeledField>

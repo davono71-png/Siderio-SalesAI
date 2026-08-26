@@ -48,10 +48,10 @@ export default async function RicercaPage({
   const offers = (data ?? []) as RecentOffer[];
 
   return (
-    <div style={{ display: "flex", fontFamily: "inherit" }}>
+    <div className="app-shell" style={{ fontFamily: "inherit" }}>
       <Sidebar active="cerca" userLabel={userLabel} />
 
-      <main style={{ flex: 1, padding: "26px 32px 50px", minWidth: 0 }}>
+      <main className="main-content">
         <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 20 }}>
           <a
             href="/ricerca"
@@ -175,13 +175,15 @@ export default async function RicercaPage({
                 style={{
                   padding: "16px 20px",
                   display: "flex",
+                  flexWrap: "wrap",
                   alignItems: "center",
                   justifyContent: "space-between",
+                  gap: 10,
                   borderBottom: i < offers.length - 1 ? "1px solid var(--border)" : "none",
                   color: "var(--text)",
                 }}
               >
-                <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 16 }}>
                   <span
                     style={{
                       fontSize: 11,
