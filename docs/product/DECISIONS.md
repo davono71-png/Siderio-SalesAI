@@ -13,12 +13,21 @@ Formato: data, decisione, chi l'ha presa, note. Una volta presa, una decisione q
 | 5 | La numerazione delle offerte in Sales AI è quella di Suite (`offers.offer_number`). | Conferma esplicita. |
 | 6 | Database ospitato in Supabase. | Conferma esplicita. |
 
+## 2026-08-26 — Seconda revisione: chiusura gap tecnici (Davide)
+
+| # | Decisione/chiarimento | Sostituisce/chiarisce |
+|---|---|---|
+| 7 | La gestione della revisione delle offerte va implementata **in Siderio Suite** (non in Sales AI). Sales AI la consumerà solo quando Suite la espone. | Chiude il gap "manca la colonna revisione" spostandone la responsabilità fuori da Sales AI. |
+| 8 | Il mismatch `offerte_allegati.offerta_id` (text) vs `offers.id` (uuid) è puramente di tipo: il campo contiene lo stesso uuid come stringa (verificato sui dati: 79/80 righe corrispondono con un cast, 1 orfana). Si risolve in lettura con `offerta_id::uuid`, nessuna modifica a Suite necessaria. | Chiude il gap #2, prima segnato come "da chiarire". |
+| 9 | `offers.agente` è già vincolato in pratica dall'anagrafica `agenti` (si aggiunge l'agente in anagrafica, poi diventa selezionabile in offerta) — confermato dai dati (8/9 valori distinti trovano corrispondenza in `agenti.denominazione`). Sales AI può fare join testuale su `agenti.denominazione` in Fase 1. | Chiude il gap #3, prima segnato come "testo libero non normalizzato". |
+| 10 | Il reminder di follow-up oggi in Suite (`followup_secondo_richiamo`, `followup_notes`, `followup_sospesa`) **passa a essere gestito da Sales AI** fin dalla Fase 1. | Rende esplicito e vincolante quanto in `ROADMAP.md` era solo "gestione manuale di stato/prossima azione se utile ai test". |
+
 ## Punti aperti dopo questa revisione
 
 Vedi le sezioni "DA DECIDERE" in `REQUIREMENTS.md`, `SUITE_INTEGRATION.md` e `DATA_MODEL.md`. In sintesi:
 
-- Come tracciare la "revisione" di un'offerta (non trovata una colonna dedicata in `offers`).
-- Mismatch di tipo `offerte_allegati.offerta_id` (text) vs `offers.id` (uuid).
-- Come normalizzare `offers.agente` (testo libero) rispetto agli utenti reali (`profili_utenti`).
+- Cosa compone la "cronologia essenziale" dell'offerta, non esistendo una tabella di eventi/audit dedicata.
+- Se, dopo il passaggio del reminder a Sales AI, i campi `followup_*` di Suite restano scrivibili in parallelo o vengono congelati (incide sul seed iniziale dei dati storici).
 - Se e come Sales AI potrà mai scrivere su tabelle di Suite (oggi: nessuna scrittura prevista, solo lettura tramite viste dedicate).
 - Ambiente di staging separato da produzione, dato che si useranno dati reali fin dalla Fase 1.
+- Email pre-conversione collegate solo al cliente (non a un'offerta specifica): restano fuori scope Fase 1.

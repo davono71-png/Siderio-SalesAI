@@ -17,19 +17,19 @@ Legenda:
 | Numero offerta | `offers.offer_number` (text) | **è la numerazione da usare come riferimento esterno** (REQUISITO DECISO, vedi DECISIONS.md) |
 | Cliente | `offers.client_id` → `clients.display_name`/`company_name` | |
 | Contatto | `clients.contact_person`, `clients.email`, `clients.phone` | un solo referente per cliente, non una tabella contatti dedicata |
-| Commerciale | `offers.agente` (text) | **campo testo libero, non FK a un utente** — da verificare come normalizzarlo |
+| Commerciale/agente | `offers.agente` (text) | vincolato all'anagrafica `agenti` a livello applicativo (non FK in DB) — confermato, vedi `SUITE_INTEGRATION.md` |
 | Oggetto | `offers.title`, `work_description_final` | |
 | Importo | `offers.final_price_net` / `final_price_vat` | |
 | Stato | `offers.status` (enum) | valori noti: draft, sent, accepted, rejected |
-| Revisione | — | **non trovata una colonna dedicata** — DA VERIFICARE con chi conosce lo schema (Mattia) |
+| Revisione | — | non ancora presente in Suite — **da implementare lato Suite** (Davide), fuori scope Sales AI per ora |
 | Data creazione | `offers.created_at` | |
 | Data ultimo invio | `offers.sent_at` | |
 | Note | `offers.internal_notes`, `offers.followup_notes` | |
 | Email collegate | `email_messaggi.offerta_id` (uuid, nullable) | collegamento diretto già esistente |
 
-**DA DECIDERE** — come recuperare/normalizzare il campo "revisione" (se esiste altrove, es. `editor_state` jsonb, o se le revisioni non sono tracciate come versioni distinte in Suite oggi).
+**REQUISITO DECISO (26/08/2026)** — la gestione della revisione delle offerte va implementata in Siderio Suite (a cura di Davide); Sales AI la consumerà solo una volta disponibile. Non è un'attività della Fase 1 di Sales AI.
 
-**DA DECIDERE** — `offerte_allegati.offerta_id` è di tipo `text` mentre `offers.id` è `uuid`: mismatch di tipo da chiarire prima di usare questa tabella per gli allegati nel contesto offerta.
+**Chiarito (26/08/2026)** — `offerte_allegati.offerta_id` (text) contiene lo stesso uuid di `offers.id`, non l'`offer_number`: basta il cast `offerta_id::uuid` in lettura. Dettagli e caso limite (1 riga orfana su 80) in `docs/architecture/SUITE_INTEGRATION.md`.
 
 ## 2. Primo obiettivo funzionale
 
@@ -49,6 +49,8 @@ Legenda:
 
 Esempio: `waiting_for=customer, action_owner=none` → "Aspettiamo il cliente, Siderio non deve fare nulla ora."
 Esempio: `waiting_for=siderio, action_owner=siderio` → "Il cliente aspetta una nostra revisione."
+
+**REQUISITO DECISO (26/08/2026)** — il reminder di follow-up oggi gestito in Suite (`offers.followup_secondo_richiamo`, `followup_notes`, `followup_sospesa`) passa a essere gestito da Sales AI fin dalla Fase 1, tramite `next_action_date`/`reason` in `sales_ai.offer_local_state`. Non è più solo "utile ai test": è la funzione che sostituisce il reminder di Suite. Vedi gap #4 in `SUITE_INTEGRATION.md` per l'importazione dello storico esistente (74 offerte con data di richiamo, 56 con note) e per il punto ancora aperto su cosa succede ai campi `followup_*` di Suite dopo il passaggio.
 
 ## 4. Storico delle valutazioni
 
