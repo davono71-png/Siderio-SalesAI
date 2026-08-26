@@ -28,6 +28,12 @@ Formato: data, decisione, chi l'ha presa, note. Una volta presa, una decisione q
 |---|---|---|
 | 11 | In Fase 1, `sales_ai.offer_local_state` parte come **copia sincronizzata** dei campi `followup_*` di Suite (seed iniziale + risincronizzazione finché Suite resta scrivibile su quei campi). Sales AI diventa il vero gestore (fonte di verità esclusiva) del follow-up solo in una fase successiva, il cui momento esatto non è ancora fissato. | Chiude il punto 10: prima "chi scrive cosa dopo il passaggio" era aperto, ora è definita la fase transitoria (copia) prima del passaggio pieno. |
 
+## 2026-08-26 — Via libera alla Fase 1 (Davide, "parti e pubblica la prima versione")
+
+Applicata la migrazione `sales_ai_schema` sul progetto Supabase condiviso `Siderio-Suite_2`: schema `sales_ai` con tabelle `offer_local_state`/`offer_analysis` e le funzioni `SECURITY DEFINER` `get_offer_context`/`search_offers` (nessuna tabella `public.*` di Suite toccata o concessa direttamente). Scaffolding applicativo Next.js creato e pushato su questo branch, build di produzione verificata.
+
+**Non ancora fatto**: promozione a `main`/dominio di produzione Vercel (`siderio-sales-ai.vercel.app`) — resta da confermare esplicitamente, vedi il messaggio di chiusura di questa sessione.
+
 ## Punti aperti dopo questa revisione
 
 Vedi le sezioni "DA DECIDERE" in `REQUIREMENTS.md`, `SUITE_INTEGRATION.md` e `DATA_MODEL.md`. In sintesi:

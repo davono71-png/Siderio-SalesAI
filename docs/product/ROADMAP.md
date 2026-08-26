@@ -13,18 +13,20 @@ Sequenza di partenza, non vincolante nei tempi. Ogni fase è subordinata al comp
 - [ ] Autenticazione definita (`AUTH.md`)
 - [ ] Punti "DA DECIDERE" residui chiusi (vedi `DECISIONS.md`)
 
-## FASE 1 — Fondamenta applicative
+## FASE 1 — Fondamenta applicative (IN CORSO — prima versione avviata il 26/08/2026)
 
-- Creare applicazione Sales AI (Next.js, coerente con hosting Vercel già collegato).
-- Collegamento al sistema di autenticazione Siderio (Supabase Auth condiviso).
-- Collegamento controllato con Suite (viste/funzioni sullo schema condiviso, non accesso libero).
-- Recupero di una singola offerta tramite numero offerta.
-- Visualizzazione completa del contesto dell'offerta (dati, cliente/contatto, note, email, cronologia essenziale).
-- Schema dati Sales AI (`sales_ai`) nello stesso progetto Supabase di Suite.
-- Storico minimo delle valutazioni (gestito manualmente in questa fase).
-- Gestione manuale di stato/priorità/prossima azione, se utile ai test.
+- [x] Creare applicazione Sales AI (Next.js 16, App Router, coerente con hosting Vercel già collegato).
+- [x] Collegamento al sistema di autenticazione Siderio (Supabase Auth condiviso — login email/password, stesse credenziali di Suite).
+- [x] Collegamento controllato con Suite (funzioni `sales_ai.get_offer_context`/`sales_ai.search_offers`, `SECURITY DEFINER`, nessun accesso diretto alle tabelle `public.*` — vedi `supabase/migrations/20260826000000_sales_ai_schema.sql`).
+- [x] Recupero di una singola offerta tramite numero offerta.
+- [x] Visualizzazione completa del contesto dell'offerta (dati, cliente/contatto, note, email, cronologia essenziale).
+- [x] Schema dati Sales AI (`sales_ai`) nello stesso progetto Supabase di Suite (`offer_local_state`, `offer_analysis`).
+- [ ] Storico minimo delle valutazioni — tabella `sales_ai.offer_analysis` creata, non ancora popolata da alcuna schermata.
+- [x] Gestione manuale di stato/priorità/prossima azione (pannello "Stato Sales AI" nella pagina offerta).
 
 Nessuna interpretazione AI in questa fase.
+
+Non ancora fatto in questa prima versione: ricerca full-text oltre a numero/cliente, gestione allegati, sincronizzazione del reminder da `offers.followup_*` (vedi `docs/architecture/SUITE_INTEGRATION.md` gap #4), pagina "Storico valutazioni".
 
 ## FASE 2 — Intelligenza
 
