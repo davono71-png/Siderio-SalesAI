@@ -22,12 +22,18 @@ Formato: data, decisione, chi l'ha presa, note. Una volta presa, una decisione q
 | 9 | `offers.agente` è già vincolato in pratica dall'anagrafica `agenti` (si aggiunge l'agente in anagrafica, poi diventa selezionabile in offerta) — confermato dai dati (8/9 valori distinti trovano corrispondenza in `agenti.denominazione`). Sales AI può fare join testuale su `agenti.denominazione` in Fase 1. | Chiude il gap #3, prima segnato come "testo libero non normalizzato". |
 | 10 | Il reminder di follow-up oggi in Suite (`followup_secondo_richiamo`, `followup_notes`, `followup_sospesa`) **passa a essere gestito da Sales AI** fin dalla Fase 1. | Rende esplicito e vincolante quanto in `ROADMAP.md` era solo "gestione manuale di stato/prossima azione se utile ai test". |
 
+## 2026-08-26 — Terza revisione: fase transitoria follow-up (Davide)
+
+| # | Decisione | Sostituisce/chiarisce |
+|---|---|---|
+| 11 | In Fase 1, `sales_ai.offer_local_state` parte come **copia sincronizzata** dei campi `followup_*` di Suite (seed iniziale + risincronizzazione finché Suite resta scrivibile su quei campi). Sales AI diventa il vero gestore (fonte di verità esclusiva) del follow-up solo in una fase successiva, il cui momento esatto non è ancora fissato. | Chiude il punto 10: prima "chi scrive cosa dopo il passaggio" era aperto, ora è definita la fase transitoria (copia) prima del passaggio pieno. |
+
 ## Punti aperti dopo questa revisione
 
 Vedi le sezioni "DA DECIDERE" in `REQUIREMENTS.md`, `SUITE_INTEGRATION.md` e `DATA_MODEL.md`. In sintesi:
 
 - Cosa compone la "cronologia essenziale" dell'offerta, non esistendo una tabella di eventi/audit dedicata.
-- Se, dopo il passaggio del reminder a Sales AI, i campi `followup_*` di Suite restano scrivibili in parallelo o vengono congelati (incide sul seed iniziale dei dati storici).
+- Quando esattamente avviene il passaggio da "copia sincronizzata" a "Sales AI fonte di verità esclusiva" del follow-up, e come si disattiva la scrittura lato Suite in quel momento.
 - Se e come Sales AI potrà mai scrivere su tabelle di Suite (oggi: nessuna scrittura prevista, solo lettura tramite viste dedicate).
 - Ambiente di staging separato da produzione, dato che si useranno dati reali fin dalla Fase 1.
 - Email pre-conversione collegate solo al cliente (non a un'offerta specifica): restano fuori scope Fase 1.

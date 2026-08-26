@@ -19,7 +19,7 @@ Stato "vivo" corrente di un'offerta lato Sales AI — una riga per offerta.
 | `updated_at` | timestamptz | data ultimo aggiornamento/analisi |
 | `updated_by` | uuid | riferimento a `auth.users.id` (utente Sales AI che ha aggiornato) |
 
-**Seed iniziale (PROPOSTA, 26/08/2026)** — al primo popolamento, importare una tantum da Suite: `next_action_date ← offers.followup_secondo_richiamo`, `reason ← offers.followup_notes`, per le offerte che li hanno valorizzati (74 e 56 rispettivamente su 108 offerte, dato reale al 26/08/2026). Coerente con la decisione che la gestione del reminder passa a Sales AI (vedi `docs/product/REQUIREMENTS.md` §3 e `docs/architecture/SUITE_INTEGRATION.md` gap #4). **DA DECIDERE**: se dopo il passaggio i campi `followup_*` di Suite restano scrivibili in parallelo o vengono congelati — se restano scrivibili, questo seed andrebbe ripetuto o Suite andrebbe resa read-only su quei campi.
+**Seed e fase transitoria (REQUISITO DECISO, 26/08/2026)** — al primo popolamento, importare da Suite: `next_action_date ← offers.followup_secondo_richiamo`, `reason ← offers.followup_notes` (74 e 56 offerte valorizzate su 108, dato reale al 26/08/2026). Finché Suite resta l'origine "di fatto" del reminder, `offer_local_state` funziona come **copia sincronizzata** di quei campi; solo in una fase successiva Sales AI diventerà la fonte di verità esclusiva del follow-up (passaggio da fissare più avanti, vedi `docs/architecture/SUITE_INTEGRATION.md` gap #4). Questo significa che in Fase 1 la sincronizzazione va ripetuta/aggiornata a ogni lettura finché dura la fase transitoria, non solo all'avvio.
 
 ## `sales_ai.offer_analysis`
 
