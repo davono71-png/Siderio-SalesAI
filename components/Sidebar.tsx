@@ -30,7 +30,8 @@ export type SidebarSection =
   | "attivita"
   | "clienti"
   | "pipeline"
-  | "storico";
+  | "storico"
+  | "richieste";
 
 function NavItem({
   href,
@@ -113,7 +114,7 @@ function SidebarNav({ active }: { active: SidebarSection }) {
 
       <NavGroup title="INGRESSO">
         <NavItem href="/inbox" icon={<MailIcon size={16} />} label="Inbox commerciale" active={active === "inbox"} />
-        <NavItem icon={<NoteIcon size={16} />} label="Richieste" soonTag="IN ARRIVO" />
+        <NavItem href="/richieste" icon={<NoteIcon size={16} />} label="Richieste" active={active === "richieste"} />
       </NavGroup>
 
       <NavGroup title="COMMERCIALE">
