@@ -36,5 +36,5 @@ export async function signIn(
     refresh_token: data.session.refresh_token,
   });
 
-  redirect("/ricerca");
+  redirect("/oggi");
 }

@@ -14,7 +14,12 @@ import {
   GearIcon,
   MenuIcon,
   CloseIcon,
+  MailIcon,
+  NoteIcon,
+  SparkIcon,
 } from "./icons";
+
+export type SidebarSection = "oggi" | "offerte" | "offerta";
 
 function NavItem({
   href,
@@ -88,29 +93,35 @@ function NavGroup({ title, children }: { title: string; children: React.ReactNod
   );
 }
 
-function SidebarNav({ active }: { active: "cerca" | "offerta" }) {
+function SidebarNav({ active }: { active: SidebarSection }) {
   return (
     <>
-      <NavGroup title="OPERATIVO">
-        <NavItem
-          href="/ricerca"
-          icon={<SearchIcon size={16} />}
-          label="Cerca offerta"
-          active={active === "cerca" || active === "offerta"}
-        />
-        <NavItem icon={<FileIcon size={16} />} label="Offerte" soonTag="FASE 3" />
-        <NavItem icon={<ArrowUpRightIcon size={16} />} label="Follow-up" soonTag="FASE 3" />
-        <NavItem icon={<ClockIcon size={16} />} label="Attese" soonTag="FASE 3" />
+      <NavGroup title="OGGI">
+        <NavItem href="/oggi" icon={<SparkIcon size={16} />} label="Command Center" active={active === "oggi"} />
+      </NavGroup>
+
+      <NavGroup title="INGRESSO">
+        <NavItem icon={<MailIcon size={16} />} label="Inbox commerciale" soonTag="IN ARRIVO" />
+        <NavItem icon={<NoteIcon size={16} />} label="Richieste" soonTag="IN ARRIVO" />
       </NavGroup>
 
       <NavGroup title="COMMERCIALE">
-        <NavItem icon={<BuildingIcon size={16} />} label="Clienti" soonTag="FASE 3" />
-        <NavItem icon={<GridIcon size={16} />} label="Pipeline" soonTag="FASE 3" />
+        <NavItem
+          href="/ricerca"
+          icon={<FileIcon size={16} />}
+          label="Offerte"
+          active={active === "offerte" || active === "offerta"}
+        />
+        <NavItem icon={<ArrowUpRightIcon size={16} />} label="Follow-up" soonTag="IN ARRIVO" />
+        <NavItem icon={<ClockIcon size={16} />} label="Attese" soonTag="IN ARRIVO" />
+        <NavItem icon={<BuildingIcon size={16} />} label="Clienti" soonTag="IN ARRIVO" />
+        <NavItem icon={<GridIcon size={16} />} label="Agenzie" soonTag="IN ARRIVO" />
+        <NavItem icon={<GridIcon size={16} />} label="Pipeline" soonTag="IN ARRIVO" />
       </NavGroup>
 
       <NavGroup title="SISTEMA">
-        <NavItem icon={<ClockIcon size={16} />} label="Storico valutazioni" soonTag="FASE 2" />
-        <NavItem icon={<GearIcon size={16} />} label="Impostazioni" />
+        <NavItem icon={<SearchIcon size={16} />} label="Storico AI" soonTag="IN ARRIVO" />
+        <NavItem icon={<GearIcon size={16} />} label="Impostazioni" soonTag="IN ARRIVO" />
       </NavGroup>
     </>
   );
@@ -172,7 +183,7 @@ export function Sidebar({
   active,
   userLabel,
 }: {
-  active: "cerca" | "offerta";
+  active: SidebarSection;
   userLabel: string;
 }) {
   const [open, setOpen] = useState(false);

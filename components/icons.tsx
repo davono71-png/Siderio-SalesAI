@@ -170,6 +170,26 @@ export function CloseIcon({ size, color }: IconProps) {
   );
 }
 
+export function SparkIcon({ size, color }: IconProps) {
+  return (
+    <svg {...base(size)} style={{ color }}>
+      <path d="M12 3l1.9 5.6L19.5 10l-5.6 1.9L12 17.5l-1.9-5.6L4.5 10l5.6-1.4z" />
+      <line x1="18" y1="17" x2="18" y2="21" />
+      <line x1="16" y1="19" x2="20" y2="19" />
+    </svg>
+  );
+}
+
+export function AlertIcon({ size, color }: IconProps) {
+  return (
+    <svg {...base(size)} style={{ color }}>
+      <path d="M10.3 3.6 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.6a2 2 0 0 0-3.4 0z" />
+      <line x1="12" y1="9" x2="12" y2="13" />
+      <line x1="12" y1="17" x2="12" y2="17.01" />
+    </svg>
+  );
+}
+
 export function RefreshIcon({ size, color }: IconProps) {
   return (
     <svg {...base(size)} style={{ color }}>

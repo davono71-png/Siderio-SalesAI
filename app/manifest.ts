@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Sales AI",
     short_name: "Sales AI",
     description: "Contesto commerciale delle offerte Siderio, in un unico posto.",
-    start_url: "/ricerca",
+    start_url: "/oggi",
     scope: "/",
     display: "standalone",
     background_color: "#f5f5f3",
