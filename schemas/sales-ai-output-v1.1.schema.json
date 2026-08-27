@@ -1,0 +1,365 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SiderioSalesAiOutputV1_1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "classification",
+    "confidence",
+    "email",
+    "channel",
+    "agency_name",
+    "customer",
+    "request",
+    "qualification",
+    "commercial",
+    "open_actions",
+    "reason",
+    "evidence"
+  ],
+  "properties": {
+    "classification": {
+      "type": "string",
+      "enum": [
+        "NEW_REQUEST",
+        "EXISTING_OPPORTUNITY",
+        "NOT_COMMERCIAL",
+        "UNCERTAIN"
+      ]
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "email": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "message_id",
+        "thread_id",
+        "subject",
+        "from_address",
+        "to_address",
+        "email_date",
+        "source_account"
+      ],
+      "properties": {
+        "message_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "thread_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "subject": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "from_address": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "to_address": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "email_date": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_account": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "channel": {
+      "type": "string",
+      "enum": [
+        "DIRECT",
+        "AGENCY",
+        "UNKNOWN"
+      ]
+    },
+    "agency_name": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "customer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "contact_name",
+        "email"
+      ],
+      "properties": {
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "contact_name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "email": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "subject",
+        "installation_location",
+        "timing",
+        "customer_budget_status",
+        "customer_budget"
+      ],
+      "properties": {
+        "subject": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "installation_location": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "timing": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "customer_budget_status": {
+          "type": "string",
+          "enum": [
+            "KNOWN",
+            "NOT_MENTIONED",
+            "CUSTOMER_DOES_NOT_KNOW"
+          ]
+        },
+        "customer_budget": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "qualification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "completeness",
+        "sufficient_to_proceed",
+        "critical_missing_information",
+        "non_blocking_missing_information"
+      ],
+      "properties": {
+        "completeness": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "sufficient_to_proceed": {
+          "type": "boolean"
+        },
+        "critical_missing_information": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "non_blocking_missing_information": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "commercial": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "opportunity_status",
+        "loss_reason",
+        "followup_owner",
+        "waiting_for",
+        "suggested_action",
+        "action_due_date",
+        "wait_until",
+        "next_review_date"
+      ],
+      "properties": {
+        "opportunity_status": {
+          "type": "string",
+          "enum": [
+            "OPEN",
+            "WAITING",
+            "WON",
+            "LOST",
+            "ON_HOLD",
+            "UNKNOWN"
+          ]
+        },
+        "loss_reason": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "BUDGET",
+            "PRICE",
+            "TIMING",
+            "PROJECT_CANCELLED",
+            "COMPETITOR",
+            "TECHNICAL",
+            "NO_RESPONSE",
+            "OTHER",
+            "UNKNOWN",
+            null
+          ]
+        },
+        "followup_owner": {
+          "type": "string",
+          "enum": [
+            "SIDERIO",
+            "AGENCY",
+            "SHARED",
+            "UNKNOWN"
+          ]
+        },
+        "waiting_for": {
+          "type": "string",
+          "enum": [
+            "SIDERIO",
+            "CUSTOMER",
+            "AGENCY",
+            "ARCHITECT",
+            "NONE",
+            "UNKNOWN"
+          ]
+        },
+        "suggested_action": {
+          "type": "string",
+          "enum": [
+            "REVIEW_REQUEST",
+            "REQUEST_INFORMATION",
+            "PREPARE_QUOTE",
+            "PREPARE_REVISION",
+            "FORMALIZE_ORDER",
+            "WAIT",
+            "FOLLOW_UP_CUSTOMER",
+            "ASK_AGENCY_UPDATE",
+            "REPLY_TO_CUSTOMER",
+            "REPLY_TO_AGENCY",
+            "INTERNAL_CHECK",
+            "ARCHIVE",
+            "NO_ACTION",
+            "MANUAL_REVIEW"
+          ]
+        },
+        "action_due_date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "wait_until": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "next_review_date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        }
+      }
+    },
+    "open_actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "actor",
+          "description",
+          "due_date",
+          "blocking"
+        ],
+        "properties": {
+          "actor": {
+            "type": "string",
+            "enum": [
+              "SIDERIO",
+              "CUSTOMER",
+              "AGENCY",
+              "ARCHITECT",
+              "OTHER"
+            ]
+          },
+          "description": {
+            "type": "string"
+          },
+          "due_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "blocking": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "reason": {
+      "type": "string"
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

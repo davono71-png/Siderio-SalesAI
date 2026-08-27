@@ -6,14 +6,17 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "verify:sales-ai": "node scripts/verify-sales-ai.js"
   },
   "dependencies": {
     "next": "16.3.3",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "@supabase/ssr": "0.8.0",
-    "@supabase/supabase-js": "2.81.1"
+    "@supabase/supabase-js": "2.81.1",
+    "openai": "^7.5.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "typescript": "^5.7.2",

@@ -1,0 +1,23 @@
+-- TEMPLATE: NON ESEGUIRE SENZA SOSTITUIRE URL E SEGRETO.
+-- Il progetto Siderio usa già pg_cron + pg_net: riutilizzare lo stesso pattern.
+-- Frequenza proposta per la V1: ogni 5 minuti.
+-- Se serve maggiore reattività, Davide può ridurre il tempo compatibilmente con i limiti del piano.
+
+-- Esempio concettuale:
+-- select cron.schedule(
+--   'siderio-sales-ai-process-next',
+--   '*/5 * * * *',
+--   $$
+--   select net.http_post(
+--     url := 'https://<SALES_AI_VERCEL_DOMAIN>/api/sales-ai/process-next',
+--     headers := jsonb_build_object(
+--       'Content-Type', 'application/json',
+--       'x-sales-ai-cron-secret', '<SALES_AI_CRON_SECRET>'
+--     ),
+--     body := '{}'::jsonb
+--   );
+--   $$
+-- );
+--
+-- IMPORTANTE: non lasciare il segreto in chiaro nello storico SQL di produzione.
+-- Usare il meccanismo di secret/Vault già adottato dal progetto quando possibile.

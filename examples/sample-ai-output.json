@@ -1,0 +1,61 @@
+{
+  "classification": "EXISTING_OPPORTUNITY",
+  "confidence": 0.95,
+  "email": {
+    "message_id": "<example@example.com>",
+    "thread_id": "<thread@example.com>",
+    "subject": "Re: Offerta 1234",
+    "from_address": "Cliente <cliente@example.com>",
+    "to_address": "Siderio <commerciale@siderio.it>",
+    "email_date": "2026-08-27T12:00:00.000Z",
+    "source_account": "commerciale@siderio.it"
+  },
+  "channel": "DIRECT",
+  "agency_name": null,
+  "customer": {
+    "name": "Example Design Studio",
+    "contact_name": "Mario Rossi",
+    "email": "cliente@example.com"
+  },
+  "request": {
+    "subject": "Revisione elemento metallico",
+    "installation_location": null,
+    "timing": null,
+    "customer_budget_status": "NOT_MENTIONED",
+    "customer_budget": null
+  },
+  "qualification": {
+    "completeness": 85,
+    "sufficient_to_proceed": true,
+    "critical_missing_information": [],
+    "non_blocking_missing_information": []
+  },
+  "commercial": {
+    "opportunity_status": "OPEN",
+    "loss_reason": null,
+    "followup_owner": "SIDERIO",
+    "waiting_for": "SIDERIO",
+    "suggested_action": "PREPARE_REVISION",
+    "action_due_date": null,
+    "wait_until": null,
+    "next_review_date": null
+  },
+  "open_actions": [
+    {
+      "actor": "SIDERIO",
+      "description": "Preparare la revisione richiesta",
+      "due_date": null,
+      "blocking": false
+    },
+    {
+      "actor": "CUSTOMER",
+      "description": "Confermare un dettaglio di posizionamento",
+      "due_date": null,
+      "blocking": false
+    }
+  ],
+  "reason": "La conversazione riguarda una revisione di un'offerta esistente e contiene attività aperte sia per Siderio sia per il cliente.",
+  "evidence": [
+    "Richiesta esplicita di revisione dell'offerta esistente."
+  ]
+}
