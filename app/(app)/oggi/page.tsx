@@ -71,7 +71,7 @@ export default async function OggiPage() {
   } = await supabase.auth.getUser();
   const userLabel = (user?.user_metadata?.full_name as string | undefined) || user?.email || "Utente";
 
-  const { data, error } = await supabase.schema("sales_ai").rpc("get_dashboard", { p_limit: 12 });
+  const { data, error } = await supabase.schema("sales_ai").rpc("get_dashboard", { p_limit: 25 });
   const dash = data as Dashboard | null;
 
   const kpis = dash?.kpis;
@@ -96,7 +96,25 @@ export default async function OggiPage() {
             <h1>Buongiorno, {userLabel.split(" ")[0]}.</h1>
             <p className="subtitle">Cosa merita attenzione oggi sul portafoglio offerte.</p>
           </div>
-          <div className="datebox">{today}</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
+            <div className="datebox">{today}</div>
+            <form action="/ricerca" method="get" style={{ display: "flex", gap: 6 }}>
+              <input
+                name="q"
+                placeholder="Vai a un'offerta, es. 6579"
+                style={{
+                  background: "#fff",
+                  border: "1px solid var(--border)",
+                  borderRadius: 10,
+                  padding: "9px 12px",
+                  minWidth: 210,
+                }}
+              />
+              <button type="submit" className="btn small dark">
+                Apri
+              </button>
+            </form>
+          </div>
         </div>
 
         {error && (

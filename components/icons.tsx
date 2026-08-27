@@ -180,6 +180,14 @@ export function SparkIcon({ size, color }: IconProps) {
   );
 }
 
+export function CheckIcon({ size, color }: IconProps) {
+  return (
+    <svg {...base(size)} style={{ color }}>
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  );
+}
+
 export function AlertIcon({ size, color }: IconProps) {
   return (
     <svg {...base(size)} style={{ color }}>

@@ -17,9 +17,20 @@ import {
   MailIcon,
   NoteIcon,
   SparkIcon,
+  CheckIcon,
 } from "./icons";
 
-export type SidebarSection = "oggi" | "offerte" | "offerta";
+export type SidebarSection =
+  | "oggi"
+  | "offerte"
+  | "offerta"
+  | "inbox"
+  | "followup"
+  | "attese"
+  | "attivita"
+  | "clienti"
+  | "pipeline"
+  | "storico";
 
 function NavItem({
   href,
@@ -101,7 +112,7 @@ function SidebarNav({ active }: { active: SidebarSection }) {
       </NavGroup>
 
       <NavGroup title="INGRESSO">
-        <NavItem icon={<MailIcon size={16} />} label="Inbox commerciale" soonTag="IN ARRIVO" />
+        <NavItem href="/inbox" icon={<MailIcon size={16} />} label="Inbox commerciale" active={active === "inbox"} />
         <NavItem icon={<NoteIcon size={16} />} label="Richieste" soonTag="IN ARRIVO" />
       </NavGroup>
 
@@ -112,15 +123,21 @@ function SidebarNav({ active }: { active: SidebarSection }) {
           label="Offerte"
           active={active === "offerte" || active === "offerta"}
         />
-        <NavItem icon={<ArrowUpRightIcon size={16} />} label="Follow-up" soonTag="IN ARRIVO" />
-        <NavItem icon={<ClockIcon size={16} />} label="Attese" soonTag="IN ARRIVO" />
-        <NavItem icon={<BuildingIcon size={16} />} label="Clienti" soonTag="IN ARRIVO" />
+        <NavItem
+          href="/follow-up"
+          icon={<ArrowUpRightIcon size={16} />}
+          label="Follow-up"
+          active={active === "followup"}
+        />
+        <NavItem href="/attese" icon={<ClockIcon size={16} />} label="Attese" active={active === "attese"} />
+        <NavItem href="/attivita" icon={<CheckIcon size={16} />} label="Attività" active={active === "attivita"} />
+        <NavItem href="/clienti" icon={<BuildingIcon size={16} />} label="Clienti" active={active === "clienti"} />
         <NavItem icon={<GridIcon size={16} />} label="Agenzie" soonTag="IN ARRIVO" />
-        <NavItem icon={<GridIcon size={16} />} label="Pipeline" soonTag="IN ARRIVO" />
+        <NavItem href="/pipeline" icon={<GridIcon size={16} />} label="Pipeline" active={active === "pipeline"} />
       </NavGroup>
 
       <NavGroup title="SISTEMA">
-        <NavItem icon={<SearchIcon size={16} />} label="Storico AI" soonTag="IN ARRIVO" />
+        <NavItem href="/storico" icon={<SearchIcon size={16} />} label="Storico AI" active={active === "storico"} />
         <NavItem icon={<GearIcon size={16} />} label="Impostazioni" soonTag="IN ARRIVO" />
       </NavGroup>
     </>
