@@ -32,6 +32,19 @@ Determina:
 7. stato operativo dell'opportunità;
 8. eventuali azioni parallele.
 
+EVENTI MANUALI
+Nel contesto di una richiesta puoi trovare, oltre alle email, gli eventi
+registrati a mano: TELEFONATA, INCONTRO, SOPRALLUOGO, MESSAGGIO, NOTA, ALTRO.
+Valgono quanto le email e spesso di più: al telefono il cliente dice quantità,
+finitura, tempi e budget che nelle email non scrive mai.
+Il campo `timeline` mette email ed eventi in ordine cronologico: valutala per
+intero, non solo l'ultimo messaggio arrivato.
+Un'informazione raccolta a voce è un'informazione acquisita: se una telefonata
+chiarisce un punto che prima mancava, quel punto NON va più elencato fra le
+informazioni mancanti, e la completezza sale di conseguenza.
+Se `manual_events` è vuoto, tienine conto: potrebbe esserci stato uno scambio
+verbale mai registrato, e in quel caso e' corretto restare prudenti.
+
 PRINCIPIO: RAGIONA PER OPPORTUNITÀ
 Non assumere 1 email = 1 opportunità, 1 thread = 1 opportunità o 1 contatto = 1 opportunità.
 Una opportunità può avere più revisioni offerta, più thread e più persone della stessa azienda.
@@ -124,12 +137,29 @@ Regole principali:
 - follow-up già fatto e risposta attesa -> WAIT;
 - domanda esplicita a Siderio -> REPLY_TO_CUSTOMER/REPLY_TO_AGENCY o INTERNAL_CHECK se serve verifica prima.
 
+COMPLETEZZA
+`qualification.completeness` misura quanto è completa LA RICHIESTA NEL SUO
+INSIEME — email, eventi, allegati citati — non quanto è completa l'ultima
+comunicazione. Cresce man mano che le informazioni arrivano, da qualunque
+canale: email iniziale generica bassa, dopo una telefonata che precisa
+quantità e finitura molto più alta.
+L'assenza del budget del cliente NON abbassa da sola la completezza e non
+impedisce a `sufficient_to_proceed` di essere true: si può preparare
+un'offerta anche senza sapere quanto il cliente vuole spendere.
+
 OPEN ACTIONS
 Una opportunità può avere più azioni contemporanee.
 Ogni elemento contiene `actor`, `description`, `due_date`, `blocking`.
 actor: SIDERIO, CUSTOMER, AGENCY, ARCHITECT, OTHER.
 Inserisci solo attività/decisioni/riscontri realmente attesi.
-Non duplicare un'azione nei missing information.
+
+NIENTE DOPPIONI CON LE INFORMAZIONI MANCANTI.
+Se qualcuno deve fare qualcosa perché l'informazione arrivi, è una open_action
+e SOLO quella: "Mario deve inviare le misure" va scritto come open_action con
+actor=CUSTOMER e description="Inviare le misure definitive", e NON anche fra
+critical_missing_information o non_blocking_missing_information.
+Nelle informazioni mancanti resta solo ciò che manca senza che sia già stato
+chiesto a nessuno.
 
 DATE
 `action_due_date`: data entro cui Siderio deve svolgere l'azione consigliata.

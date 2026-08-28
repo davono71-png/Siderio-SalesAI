@@ -1,141 +1,199 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { PageShell, EmptyState, ErrorState, getUserLabel } from "@/components/PageShell";
-import { CandidateCard, type Candidate } from "./CandidateCard";
-import { CLASSIFICATION_LABEL, CLASSIFICATION_TONE, dateFmt } from "@/lib/sales-ai/display";
+import { NuovaRichiesta } from "./NuovaRichiesta";
+import { currencyShortFmt, dateFmt, SUGGESTED_ACTION_LABEL, WAITING_FOR_LABEL } from "@/lib/sales-ai/display";
 
 export const dynamic = "force-dynamic";
 
-type Request = {
+type Riga = {
   request_id: string;
   title: string;
   status: string;
   channel: string;
-  agency_name: string | null;
+  agency_source: string | null;
   created_at: string;
   converted_offer_id: string | null;
+  offer_number: string | null;
+  estimate_min: number | null;
+  estimate_max: number | null;
+  installation_location: string | null;
   client_name: string | null;
   email_count: number;
+  event_count: number;
   sales_status: string | null;
+  confidence: number | null;
+  reason: string | null;
+  completeness: number | null;
+  sufficient: boolean | null;
+  critical_missing: string[] | null;
+  followup_owner: string | null;
+  waiting_for: string | null;
+  suggested_action: string | null;
+  timing: string | null;
+  budget_status: string | null;
+  customer_budget: string | null;
+  open_actions: number;
+  job_in_corso: boolean;
 };
 
-const STATUS_LABEL: Record<string, string> = {
-  NEW: "Nuova",
-  TO_QUALIFY: "Da qualificare",
-  WAITING_INFORMATION: "In attesa di informazioni",
-  TO_EVALUATE: "Da valutare",
-  CONVERTED_TO_OFFER: "Convertita in offerta",
-  ARCHIVED: "Archiviata",
+const STATO = {
+  NEW: { l: "Nuova", t: "info" },
+  TO_QUALIFY: { l: "Da qualificare", t: "warn" },
+  WAITING_INFORMATION: { l: "In attesa informazioni", t: "warn" },
+  TO_EVALUATE: { l: "Da preventivare", t: "ok" },
+  CONVERTED_TO_OFFER: { l: "Convertita in offerta", t: "ok" },
+  ARCHIVED: { l: "Archiviata", t: "neutral" },
+} as const;
+
+const CANALE: Record<string, string> = { DIRECT: "Diretto", AGENCY: "Agenzia", UNKNOWN: "Canale da definire" };
+
+const BUDGET: Record<string, string> = {
+  KNOWN: "noto",
+  NOT_MENTIONED: "non menzionato",
+  CUSTOMER_DOES_NOT_KNOW: "il cliente non lo sa",
 };
 
-const STATUS_TONE: Record<string, string> = {
-  NEW: "info",
-  TO_QUALIFY: "warn",
-  WAITING_INFORMATION: "warn",
-  TO_EVALUATE: "info",
-  CONVERTED_TO_OFFER: "ok",
-  ARCHIVED: "neutral",
-};
+function Barra({ valore }: { valore: number }) {
+  const tono = valore >= 80 ? "ok" : valore >= 55 ? "warn" : "danger";
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+      <div style={{ flex: 1, height: 7, background: "#f0f0ec", borderRadius: 999, overflow: "hidden", maxWidth: 190 }}>
+        <div style={{ width: `${Math.max(3, valore)}%`, height: "100%", background: `var(--${tono})` }} />
+      </div>
+      <span style={{ fontSize: 12, fontWeight: 800, color: `var(--${tono})` }}>{valore}%</span>
+    </div>
+  );
+}
 
 export default async function RichiestePage() {
   const userLabel = await getUserLabel();
   const supabase = await createClient();
 
-  const [candRes, reqRes] = await Promise.all([
-    supabase.schema("sales_ai").rpc("get_request_candidates", { p_limit: 60, p_dal: "2026-05-12" }),
-    supabase.schema("sales_ai").rpc("get_requests", { p_limit: 60 }),
-  ]);
-
-  const candidati = (candRes.data ?? []) as Candidate[];
-  const richieste = (reqRes.data ?? []) as Request[];
+  const { data, error } = await supabase.schema("sales_ai").rpc("get_requests", { p_limit: 60 });
+  const righe = (data ?? []) as Riga[];
 
   return (
     <PageShell
       active="richieste"
       userLabel={userLabel}
-      eyebrow="Sales AI · Ingresso"
-      title="Richieste"
-      subtitle="Email da controparti riconosciute per cui non esiste ancora un'offerta."
+      eyebrow="Pre-offerta"
+      title="Richieste commerciali"
+      subtitle="Gestite interamente in Sales AI fino alla decisione di creare un'offerta."
+      aside={<NuovaRichiesta />}
     >
-      <section className="panel" style={{ overflow: "hidden", marginBottom: 20 }}>
-        <div className="panel-head">
-          <h2>Richieste aperte</h2>
-          <span className="panel-meta">{richieste.length}</span>
-        </div>
+      {error && (
+        <section className="panel">
+          <ErrorState />
+        </section>
+      )}
 
-        {reqRes.error && <ErrorState />}
-        {!reqRes.error && richieste.length === 0 && (
+      {!error && righe.length === 0 && (
+        <section className="panel">
           <EmptyState
-            title="Nessuna richiesta ancora"
-            note="Crea la prima dai candidati qui sotto: da lì potrai poi generare l'offerta in Suite."
+            title="Nessuna richiesta aperta"
+            note="Le richieste nascono dalla Inbox commerciale, oppure con «Nuova richiesta» quando arrivano per telefono, in fiera o di persona."
           />
-        )}
+        </section>
+      )}
 
-        {richieste.length > 0 && (
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Richiesta</th>
-                  <th>Cliente</th>
-                  <th>Stato</th>
-                  <th>Sales AI</th>
-                  <th>Email</th>
-                  <th>Aperta il</th>
-                </tr>
-              </thead>
-              <tbody>
-                {richieste.map((r) => (
-                  <tr key={r.request_id}>
-                    <td style={{ fontWeight: 700, maxWidth: 300, overflow: "hidden", textOverflow: "ellipsis" }}>
-                      {r.title}
-                    </td>
-                    <td>{r.client_name ?? "—"}</td>
-                    <td>
-                      <span className={`status ${STATUS_TONE[r.status] ?? "neutral"}`}>
-                        {STATUS_LABEL[r.status] ?? r.status}
-                      </span>
-                    </td>
-                    <td>
-                      {r.sales_status ? (
-                        <span className={`status ${CLASSIFICATION_TONE[r.sales_status] ?? "neutral"}`}>
-                          {CLASSIFICATION_LABEL[r.sales_status] ?? r.sales_status}
-                        </span>
-                      ) : (
-                        <span style={{ color: "var(--muted)" }}>Non analizzata</span>
-                      )}
-                    </td>
-                    <td>{r.email_count}</td>
-                    <td style={{ color: "var(--muted)" }}>{dateFmt(r.created_at)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        {righe.map((r) => {
+          const stato = STATO[r.status as keyof typeof STATO] ?? { l: r.status, t: "neutral" };
+          const completezza = typeof r.completeness === "number" ? r.completeness : null;
+          const pronta = r.sufficient === true;
+          const mancanti = Array.isArray(r.critical_missing) ? r.critical_missing : [];
 
-      <section className="panel" style={{ overflow: "hidden" }}>
-        <div className="panel-head">
-          <h2>Candidati da smistare</h2>
-          <span className="panel-meta">{candidati.length} conversazioni</span>
-        </div>
+          return (
+            <section key={r.request_id} className="panel" style={{ padding: 20 }}>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 10 }}>
+                <span className={`status ${stato.t}`}>{stato.l}</span>
+                <span className="tag">{CANALE[r.channel] ?? r.channel}</span>
+                {r.agency_source && <span className="tag purple">{r.agency_source}</span>}
+                {r.job_in_corso && <span className="status info">Analisi in corso…</span>}
+                {r.offer_number && <span className="status ok">Offerta #{r.offer_number}</span>}
+              </div>
 
-        {candRes.error && <ErrorState />}
-        {!candRes.error && candidati.length === 0 && (
-          <EmptyState title="Niente da smistare" note="Tutti i candidati sono stati trasformati in richieste o scartati." />
-        )}
+              <h2 style={{ fontSize: 18, margin: "0 0 3px" }}>
+                {r.client_name ? `${r.client_name} · ` : ""}
+                {r.title}
+              </h2>
+              <div style={{ fontSize: 12, color: "var(--muted)" }}>
+                Aperta il {dateFmt(r.created_at)} · {r.email_count} email · {r.event_count}{" "}
+                {r.event_count === 1 ? "evento" : "eventi"}
+                {r.open_actions > 0 ? ` · ${r.open_actions} azioni aperte` : ""}
+              </div>
 
-        {candidati.map((c) => (
-          <CandidateCard key={`${c.client_id}|${c.subj_norm}`} c={c} />
-        ))}
-      </section>
+              {r.reason && <div className="ai-reason">{r.reason}</div>}
 
-      <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 14, lineHeight: 1.55, maxWidth: 660 }}>
-        I candidati escono da un filtro che parte dalle email in arrivo non ancora agganciate, tiene solo
-        quelle di mittenti riconosciuti come controparti commerciali senza offerte in Suite, e scarta le
-        risposte automatiche e la posta amministrativa. Non sono ancora richieste: lo decidi tu, oppure
-        l&apos;analisi AI quando la lanci sulla richiesta creata.
-      </p>
+              {!r.sales_status && !r.job_in_corso && (
+                <div style={{ fontSize: 13, color: "var(--muted)", marginTop: 10 }}>
+                  Non ancora analizzata. Aprila per lanciare la valutazione.
+                </div>
+              )}
+
+              {completezza !== null && (
+                <div style={{ marginTop: 14 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 5 }}>
+                    {pronta ? "Richiesta sufficientemente completa" : "Mancano informazioni necessarie"}
+                  </div>
+                  <Barra valore={completezza} />
+                </div>
+              )}
+
+              {mancanti.length > 0 && (
+                <div style={{ marginTop: 12 }}>
+                  <div className="eyebrow" style={{ marginBottom: 4 }}>
+                    Mancano
+                  </div>
+                  <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: "#444", lineHeight: 1.6 }}>
+                    {mancanti.slice(0, 4).map((m, i) => (
+                      <li key={i}>{m}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <div className="detail-grid" style={{ marginTop: 14 }}>
+                <div className="detail">
+                  <label>Chi deve agire</label>
+                  <div>{WAITING_FOR_LABEL[r.waiting_for ?? ""] ?? "—"}</div>
+                </div>
+                <div className="detail">
+                  <label>Azione consigliata</label>
+                  <div>{SUGGESTED_ACTION_LABEL[r.suggested_action ?? ""] ?? "—"}</div>
+                </div>
+                <div className="detail">
+                  <label>Budget cliente</label>
+                  <div>{r.customer_budget || BUDGET[r.budget_status ?? ""] || "—"}</div>
+                </div>
+                <div className="detail">
+                  <label>Stima Siderio</label>
+                  <div>
+                    {r.estimate_min || r.estimate_max
+                      ? `${currencyShortFmt(r.estimate_min)} – ${currencyShortFmt(r.estimate_max)}`
+                      : "—"}
+                  </div>
+                </div>
+                <div className="detail">
+                  <label>Tempistiche</label>
+                  <div>{r.timing || "—"}</div>
+                </div>
+                <div className="detail">
+                  <label>Luogo</label>
+                  <div>{r.installation_location || "—"}</div>
+                </div>
+              </div>
+
+              <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}>
+                <Link href={`/richieste/${r.request_id}`} className={`btn${pronta ? " ai" : " dark"}`}>
+                  {pronta ? "Apri e crea offerta" : "Apri richiesta"}
+                </Link>
+              </div>
+            </section>
+          );
+        })}
+      </div>
     </PageShell>
   );
 }
