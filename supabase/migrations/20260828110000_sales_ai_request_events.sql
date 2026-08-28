@@ -102,7 +102,7 @@ begin
            ev.id,
            ev.event_at,
            null,
-           coalesce(ev.contact_name, p.nome),
+           coalesce(ev.contact_name, trim(coalesce(p.nome, '') || ' ' || coalesce(p.cognome, ''))),
            null,
            ev.description,
            ev.outcome,
