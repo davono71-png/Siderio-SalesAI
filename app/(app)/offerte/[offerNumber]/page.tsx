@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Sidebar } from "@/components/Sidebar";
 import { AiPanel, type AiState } from "./AiPanel";
+import { runOpportunityAnalysis } from "./actions";
 import { currencyFmt, dateFmt } from "@/lib/sales-ai/display";
 import {
   ArrowLeftIcon,
@@ -82,7 +83,34 @@ export default async function OffertaPage({
     .schema("sales_ai")
     .rpc("get_offer_ai_state", { p_offer_id: ctx.offer_id });
 
-  const aiState = (aiData ?? null) as AiState | null;
+  let aiState = (aiData ?? null) as AiState | null;
+
+  // Suite può cambiare lo stato dell'offerta (inviata, accettata) dopo che
+  // l'ultima analisi è stata fatta: senza questo controllo la valutazione
+  // mostrata resta ferma a "bozza" per sempre, anche a offerta già accettata
+  // (caso reale osservato sull'offerta #6757: analisi delle 06:51, offerta
+  // segnata inviata alle 07:07, mai più ri-analizzata). Non esiste ancora un
+  // worker pg_cron che smaltisca la coda in background, quindi il momento più
+  // affidabile per rifare l'analisi è quando qualcuno apre davvero la pagina.
+  const ultimoCambioStatoSuite = [ctx.sent_at, ctx.accepted_at].filter(Boolean).sort().pop() ?? null;
+  const analisiObsoleta =
+    aiState?.latest_analysis &&
+    ultimoCambioStatoSuite &&
+    new Date(aiState.latest_analysis.created_at) < new Date(ultimoCambioStatoSuite);
+
+  if (analisiObsoleta) {
+    try {
+      const rianalisi = await runOpportunityAnalysis(ctx.offer_id, ctx.offer_number);
+      if (rianalisi.ok && !rianalisi.queued) {
+        const { data: aiDataFresca } = await supabase
+          .schema("sales_ai")
+          .rpc("get_offer_ai_state", { p_offer_id: ctx.offer_id });
+        aiState = (aiDataFresca ?? aiState) as AiState | null;
+      }
+    } catch {
+      // La pagina resta comunque utilizzabile con l'ultima analisi disponibile.
+    }
+  }
 
   const timeline = [
     { label: "Offerta creata", date: ctx.created_at },
