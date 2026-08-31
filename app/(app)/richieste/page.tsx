@@ -60,11 +60,25 @@ function Barra({ valore }: { valore: number }) {
   );
 }
 
-export default async function RichiestePage() {
+const VISTE = [
+  { v: "ACTIVE", l: "Attive" },
+  { v: "CONVERTED", l: "Convertite" },
+  { v: "ARCHIVED", l: "Archiviate" },
+  { v: "ALL", l: "Tutte" },
+] as const;
+
+export default async function RichiestePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ vista?: string }>;
+}) {
+  const { vista: vistaParam } = await searchParams;
+  const vista = VISTE.some((v) => v.v === vistaParam) ? (vistaParam as string) : "ACTIVE";
+
   const userLabel = await getUserLabel();
   const supabase = await createClient();
 
-  const { data, error } = await supabase.schema("sales_ai").rpc("get_requests", { p_limit: 60 });
+  const { data, error } = await supabase.schema("sales_ai").rpc("get_requests", { p_limit: 60, p_view: vista });
   const righe = (data ?? []) as Riga[];
 
   return (
@@ -76,6 +90,23 @@ export default async function RichiestePage() {
       subtitle="Gestite interamente in Sales AI fino alla decisione di creare un'offerta."
       aside={<NuovaRichiesta />}
     >
+      <div style={{ display: "flex", gap: 6, marginBottom: 18, flexWrap: "wrap" }}>
+        {VISTE.map((v) => (
+          <Link
+            key={v.v}
+            href={v.v === "ACTIVE" ? "/richieste" : `/richieste?vista=${v.v}`}
+            className="chip"
+            style={
+              v.v === vista
+                ? { background: "var(--dark)", color: "#fff", borderColor: "var(--dark)" }
+                : undefined
+            }
+          >
+            {v.l}
+          </Link>
+        ))}
+      </div>
+
       {error && (
         <section className="panel">
           <ErrorState />
@@ -85,7 +116,7 @@ export default async function RichiestePage() {
       {!error && righe.length === 0 && (
         <section className="panel">
           <EmptyState
-            title="Nessuna richiesta aperta"
+            title={vista === "ACTIVE" ? "Nessuna richiesta aperta" : "Nessuna richiesta in questa vista"}
             note="Le richieste nascono dalla Inbox commerciale, oppure con «Nuova richiesta» quando arrivano per telefono, in fiera o di persona."
           />
         </section>
