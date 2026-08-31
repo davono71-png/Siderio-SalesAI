@@ -2,7 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { PageShell, EmptyState, ErrorState, getUserLabel } from "@/components/PageShell";
 import { NuovaRichiesta } from "./NuovaRichiesta";
-import { currencyShortFmt, dateFmt, SUGGESTED_ACTION_LABEL, WAITING_FOR_LABEL } from "@/lib/sales-ai/display";
+import { dateFmt } from "@/lib/sales-ai/display";
 
 export const dynamic = "force-dynamic";
 
@@ -47,12 +47,6 @@ const STATO = {
 } as const;
 
 const CANALE: Record<string, string> = { DIRECT: "Diretto", AGENCY: "Agenzia", UNKNOWN: "Canale da definire" };
-
-const BUDGET: Record<string, string> = {
-  KNOWN: "noto",
-  NOT_MENTIONED: "non menzionato",
-  CUSTOMER_DOES_NOT_KNOW: "il cliente non lo sa",
-};
 
 function Barra({ valore }: { valore: number }) {
   const tono = valore >= 80 ? "ok" : valore >= 55 ? "warn" : "danger";
@@ -142,52 +136,18 @@ export default async function RichiestePage() {
               )}
 
               {mancanti.length > 0 && (
-                <div style={{ marginTop: 12 }}>
-                  <div className="eyebrow" style={{ marginBottom: 4 }}>
-                    Mancano
-                  </div>
-                  <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: "#444", lineHeight: 1.6 }}>
-                    {mancanti.slice(0, 4).map((m, i) => (
-                      <li key={i}>{m}</li>
-                    ))}
-                  </ul>
+                <div style={{ marginTop: 10, fontSize: 12.5, color: "var(--muted)" }}>
+                  Mancano: {mancanti.slice(0, 3).join(" · ")}
+                  {mancanti.length > 3 ? ` (+${mancanti.length - 3})` : ""}
                 </div>
               )}
 
-              <div className="detail-grid" style={{ marginTop: 14 }}>
-                <div className="detail">
-                  <label>Chi deve agire</label>
-                  <div>{WAITING_FOR_LABEL[r.waiting_for ?? ""] ?? "—"}</div>
-                </div>
-                <div className="detail">
-                  <label>Azione consigliata</label>
-                  <div>{SUGGESTED_ACTION_LABEL[r.suggested_action ?? ""] ?? "—"}</div>
-                </div>
-                <div className="detail">
-                  <label>Budget cliente</label>
-                  <div>{r.customer_budget || BUDGET[r.budget_status ?? ""] || "—"}</div>
-                </div>
-                <div className="detail">
-                  <label>Stima Siderio</label>
-                  <div>
-                    {r.estimate_min || r.estimate_max
-                      ? `${currencyShortFmt(r.estimate_min)} – ${currencyShortFmt(r.estimate_max)}`
-                      : "—"}
-                  </div>
-                </div>
-                <div className="detail">
-                  <label>Tempistiche</label>
-                  <div>{r.timing || "—"}</div>
-                </div>
-                <div className="detail">
-                  <label>Luogo</label>
-                  <div>{r.installation_location || "—"}</div>
-                </div>
-              </div>
-
               <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}>
-                <Link href={`/richieste/${r.request_id}`} className={`btn${pronta ? " ai" : " dark"}`}>
-                  {pronta ? "Apri e crea offerta" : "Apri richiesta"}
+                <Link
+                  href={`/richieste/${r.request_id}`}
+                  className={`btn${r.offer_number ? " dark" : pronta ? " ai" : " dark"}`}
+                >
+                  {r.offer_number ? "Apri e gestisci offerta" : pronta ? "Apri e crea offerta" : "Apri richiesta"}
                 </Link>
               </div>
             </section>

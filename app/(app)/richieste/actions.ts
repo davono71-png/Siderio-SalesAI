@@ -73,8 +73,44 @@ export async function aggiungiEvento(input: {
   return { ok: true };
 }
 
+export async function cercaClienti(query: string) {
+  const db = createServiceClient();
+  const { data, error } = await db.schema("sales_ai").rpc("search_clients", {
+    p_query: query || null,
+    p_limit: 8,
+  });
+  if (error) return [];
+  return (data ?? []) as Array<{
+    id: string;
+    display_name: string | null;
+    company_name: string | null;
+    contact_person: string | null;
+    email: string | null;
+    phone: string | null;
+    city: string | null;
+  }>;
+}
+
+export async function impostaClienteRichiesta(requestId: string, clientId: string | null) {
+  const userId = await currentUserId();
+  if (!userId) return { ok: false, error: "Sessione scaduta, rientra." };
+
+  const db = createServiceClient();
+  const { error } = await db.schema("sales_ai").rpc("imposta_cliente_richiesta", {
+    p_request_id: requestId,
+    p_client_id: clientId,
+    p_user: userId,
+  });
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/richieste");
+  revalidatePath(`/richieste/${requestId}`);
+  return { ok: true };
+}
+
 export async function creaRichiestaManuale(input: {
   oggetto: string;
+  clientId?: string | null;
   contatto?: string | null;
   canale?: string;
   agenzia?: string | null;
@@ -88,7 +124,7 @@ export async function creaRichiestaManuale(input: {
   const db = createServiceClient();
   const { data: requestId, error } = await db.schema("sales_ai").rpc("crea_richiesta_manuale", {
     p_title: input.oggetto,
-    p_client_id: null,
+    p_client_id: input.clientId || null,
     p_contact: input.contatto || null,
     p_channel: input.canale || "UNKNOWN",
     p_agency: input.agenzia || null,

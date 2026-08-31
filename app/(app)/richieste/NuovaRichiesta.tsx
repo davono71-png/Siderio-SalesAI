@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { creaRichiestaManuale } from "./actions";
+import { ClientePicker, type ClienteRisultato } from "@/components/ClientePicker";
 
 // Non tutte le richieste arrivano per email: telefonate, fiere, segnalazioni
 // di un agente, passaparola. Senza questa via il sistema dipenderebbe dalla
@@ -14,17 +15,28 @@ export function NuovaRichiesta() {
   const [errore, setErrore] = useState<string | null>(null);
 
   const [oggetto, setOggetto] = useState("");
+  const [cliente, setCliente] = useState<{ id: string; label: string } | null>(null);
   const [contatto, setContatto] = useState("");
   const [canale, setCanale] = useState("DIRECT");
   const [agenzia, setAgenzia] = useState("");
   const [luogo, setLuogo] = useState("");
   const [note, setNote] = useState("");
 
+  function selezionaCliente(c: ClienteRisultato | null) {
+    if (!c) {
+      setCliente(null);
+      return;
+    }
+    setCliente({ id: c.id, label: c.company_name || c.display_name || c.contact_person || "Cliente" });
+    if (!contatto && c.contact_person) setContatto(c.contact_person);
+  }
+
   function salva() {
     setErrore(null);
     startTransition(async () => {
       const res = await creaRichiestaManuale({
         oggetto,
+        clientId: cliente?.id ?? null,
         contatto: contatto || null,
         canale,
         agenzia: agenzia || null,
@@ -37,6 +49,7 @@ export function NuovaRichiesta() {
       }
       setAperto(false);
       setOggetto("");
+      setCliente(null);
       setContatto("");
       setAgenzia("");
       setLuogo("");
@@ -84,6 +97,11 @@ export function NuovaRichiesta() {
           placeholder="Es. Basamenti tavoli per Mass SPA"
           style={campo}
         />
+      </label>
+
+      <label style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+        <span className="eyebrow">Cliente (anagrafica Suite)</span>
+        <ClientePicker value={cliente} onSelect={selezionaCliente} />
       </label>
 
       <div className="field-grid-2">

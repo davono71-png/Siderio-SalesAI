@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { PageShell, getUserLabel } from "@/components/PageShell";
 import { EventoForm } from "../EventoForm";
 import { AzioniRichiesta } from "./AzioniRichiesta";
+import { ClienteRichiesta } from "./ClienteRichiesta";
 import { ArrowLeftIcon, MailInIcon, MailOutIcon, PhoneIcon, NoteIcon, BuildingIcon } from "@/components/icons";
 import {
   ACTOR_LABEL,
@@ -32,6 +33,7 @@ type Scheda = {
     estimate_note: string | null;
     created_at: string;
     converted_offer_id: string | null;
+    client_id: string | null;
     client_name: string | null;
     client_email: string | null;
     client_phone: string | null;
@@ -316,7 +318,10 @@ export default async function RichiestaPage({ params }: { params: Promise<{ requ
               Dati della richiesta
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              <Voce etichetta="Cliente" valore={r.client_name} />
+              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                <span className="eyebrow">Cliente (anagrafica Suite)</span>
+                <ClienteRichiesta requestId={r.id} clientId={r.client_id} clientName={r.client_name} />
+              </div>
               <Voce etichetta="Contatto" valore={r.contact_name} />
               <Voce etichetta="Email" valore={r.client_email} />
               <Voce etichetta="Telefono" valore={r.client_phone} />
