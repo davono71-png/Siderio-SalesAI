@@ -192,3 +192,39 @@ export async function cambiaStatoRichiesta(requestId: string, stato: string) {
   revalidatePath(`/richieste/${requestId}`);
   return { ok: true };
 }
+
+// L'archiviazione è una transizione di fase tracciata (motivo obbligatorio),
+// non un valore qualunque del select di stato: Rev.1 §13.4.
+export async function archiviaRichiesta(requestId: string, reason: string, note: string | null) {
+  const userId = await currentUserId();
+  if (!userId) return { ok: false, error: "Sessione scaduta, rientra." };
+
+  const db = createServiceClient();
+  const { error } = await db.schema("sales_ai").rpc("archivia_richiesta", {
+    p_request_id: requestId,
+    p_reason: reason,
+    p_note: note,
+    p_user: userId,
+  });
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/richieste");
+  revalidatePath(`/richieste/${requestId}`);
+  return { ok: true };
+}
+
+export async function ripristinaRichiesta(requestId: string) {
+  const userId = await currentUserId();
+  if (!userId) return { ok: false, error: "Sessione scaduta, rientra." };
+
+  const db = createServiceClient();
+  const { error } = await db.schema("sales_ai").rpc("ripristina_richiesta", {
+    p_request_id: requestId,
+    p_user: userId,
+  });
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/richieste");
+  revalidatePath(`/richieste/${requestId}`);
+  return { ok: true };
+}

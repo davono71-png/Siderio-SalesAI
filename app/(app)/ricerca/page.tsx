@@ -17,6 +17,30 @@ const SUITE_STATUS_LABEL: Record<string, string> = {
   accepted: "Accettata",
 };
 
+const COMMERCIAL_STATUS_LABEL: Record<string, string> = {
+  OPEN: "Aperta",
+  WAITING: "In attesa",
+  WON: "Vinta",
+  LOST: "Persa",
+  ON_HOLD: "In pausa",
+};
+
+const COMMERCIAL_STATUS_TONE: Record<string, string> = {
+  OPEN: "info",
+  WAITING: "warn",
+  WON: "ok",
+  LOST: "danger",
+  ON_HOLD: "neutral",
+};
+
+const VISTE = [
+  { v: "ACTIVE", l: "Attive" },
+  { v: "WON", l: "Won" },
+  { v: "LOST", l: "Lost" },
+  { v: "ARCHIVED", l: "Archiviate" },
+  { v: "ALL", l: "Tutte" },
+] as const;
+
 type OfferRow = {
   offer_id: string;
   offer_number: string;
@@ -27,14 +51,18 @@ type OfferRow = {
   updated_at: string | null;
   sales_status: string | null;
   sales_open_actions: number;
+  commercial_status: string | null;
+  operational_status: string | null;
 };
 
 export default async function OffertePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; vista?: string }>;
 }) {
-  const { q } = await searchParams;
+  const { q, vista: vistaParam } = await searchParams;
+  const vista = VISTE.some((v) => v.v === vistaParam) ? (vistaParam as string) : "ACTIVE";
+
   const supabase = await createClient();
 
   const {
@@ -44,9 +72,17 @@ export default async function OffertePage({
 
   const { data, error } = await supabase
     .schema("sales_ai")
-    .rpc("search_offers", { p_query: q ?? null, p_limit: 40 });
+    .rpc("search_offers", { p_query: q ?? null, p_limit: 40, p_view: vista });
 
   const offers = (data ?? []) as OfferRow[];
+
+  function hrefPerVista(v: string) {
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    if (v !== "ACTIVE") params.set("vista", v);
+    const qs = params.toString();
+    return qs ? `/ricerca?${qs}` : "/ricerca";
+  }
 
   return (
     <div className="app-shell">
@@ -61,7 +97,25 @@ export default async function OffertePage({
           </div>
         </div>
 
+        <div style={{ display: "flex", gap: 6, marginBottom: 14, flexWrap: "wrap" }}>
+          {VISTE.map((v) => (
+            <Link
+              key={v.v}
+              href={hrefPerVista(v.v)}
+              className="chip"
+              style={
+                v.v === vista
+                  ? { background: "var(--dark)", color: "#fff", borderColor: "var(--dark)" }
+                  : undefined
+              }
+            >
+              {v.l}
+            </Link>
+          ))}
+        </div>
+
         <form method="get" className="toolbar">
+          {vista !== "ACTIVE" && <input type="hidden" name="vista" value={vista} />}
           <div className="grow" style={{ position: "relative", display: "flex", alignItems: "center" }}>
             <span style={{ position: "absolute", left: 13, color: "var(--muted)", display: "flex" }}>
               <SearchIcon size={16} />
@@ -77,7 +131,7 @@ export default async function OffertePage({
             Cerca
           </button>
           {q && (
-            <Link href="/ricerca" className="btn">
+            <Link href={hrefPerVista(vista)} className="btn">
               Azzera
             </Link>
           )}
@@ -96,7 +150,9 @@ export default async function OffertePage({
           )}
 
           {!error && offers.length === 0 && (
-            <div style={{ padding: 20, fontSize: 13, color: "var(--muted)" }}>Nessuna offerta trovata.</div>
+            <div style={{ padding: 20, fontSize: 13, color: "var(--muted)" }}>
+              {vista === "ACTIVE" ? "Nessuna offerta attiva." : "Nessuna offerta in questa vista."}
+            </div>
           )}
 
           {offers.length > 0 && (
@@ -109,6 +165,7 @@ export default async function OffertePage({
                     <th>Oggetto</th>
                     <th>Stato Suite</th>
                     <th>Sales AI</th>
+                    <th>Esito</th>
                     <th>Azioni aperte</th>
                     <th>Importo</th>
                     <th>Aggiornata</th>
@@ -142,6 +199,15 @@ export default async function OffertePage({
                           </span>
                         ) : (
                           <span style={{ color: "var(--muted)" }}>Non analizzata</span>
+                        )}
+                      </td>
+                      <td>
+                        {o.commercial_status ? (
+                          <span className={`status ${COMMERCIAL_STATUS_TONE[o.commercial_status] ?? "neutral"}`}>
+                            {COMMERCIAL_STATUS_LABEL[o.commercial_status] ?? o.commercial_status}
+                          </span>
+                        ) : (
+                          <span style={{ color: "var(--muted)" }}>—</span>
                         )}
                       </td>
                       <td>

@@ -53,6 +53,49 @@ export async function runOpportunityAnalysis(offerId: string, offerNumber: strin
   }
 }
 
+// Rev.1 §13.3/13.4: archiviazione manuale di un'opportunità post-offerta —
+// eccezione tracciata (motivo obbligatorio), non il normale avanzamento
+// del funnel che avviene da solo quando la commessa è creata.
+export async function archiviaOfferta(rootOfferId: string, offerNumber: string, reason: string, note: string | null) {
+  const authed = await createClient();
+  const {
+    data: { user },
+  } = await authed.auth.getUser();
+  if (!user) return { ok: false, error: "Sessione scaduta, rientra." };
+
+  const db = createServiceClient();
+  const { error } = await db.schema("sales_ai").rpc("archivia_offerta", {
+    p_root_offer_id: rootOfferId,
+    p_reason: reason,
+    p_note: note,
+    p_user: user.id,
+  });
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath(`/offerte/${offerNumber}`);
+  revalidatePath("/ricerca");
+  return { ok: true };
+}
+
+export async function ripristinaOfferta(rootOfferId: string, offerNumber: string) {
+  const authed = await createClient();
+  const {
+    data: { user },
+  } = await authed.auth.getUser();
+  if (!user) return { ok: false, error: "Sessione scaduta, rientra." };
+
+  const db = createServiceClient();
+  const { error } = await db.schema("sales_ai").rpc("ripristina_offerta", {
+    p_root_offer_id: rootOfferId,
+    p_user: user.id,
+  });
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath(`/offerte/${offerNumber}`);
+  revalidatePath("/ricerca");
+  return { ok: true };
+}
+
 export async function submitAnalysisFeedback(analysisId: string, result: string, offerNumber: string) {
   const authed = await createClient();
   const {

@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { analizzaRichiesta, cambiaStatoRichiesta } from "../actions";
+import { analizzaRichiesta, cambiaStatoRichiesta, archiviaRichiesta, ripristinaRichiesta } from "../actions";
 import { convertiInOfferta } from "./actions";
 import { SparkIcon } from "@/components/icons";
 
@@ -11,7 +11,14 @@ const STATI = [
   { v: "TO_QUALIFY", l: "Da qualificare" },
   { v: "WAITING_INFORMATION", l: "In attesa informazioni" },
   { v: "TO_EVALUATE", l: "Da preventivare" },
-  { v: "ARCHIVED", l: "Archiviata" },
+];
+
+const MOTIVI_ARCHIVIAZIONE = [
+  { v: "DUPLICATA", l: "Duplicata" },
+  { v: "NON_PERTINENTE", l: "Non pertinente" },
+  { v: "CLIENTE_NON_PROCEDE", l: "Il cliente non procede" },
+  { v: "PROGETTO_SOSPESO", l: "Progetto sospeso" },
+  { v: "ALTRO", l: "Altro" },
 ];
 
 export function AzioniRichiesta({
@@ -30,6 +37,9 @@ export function AzioniRichiesta({
   const [errore, setErrore] = useState<string | null>(null);
   const [chiedeNumero, setChiedeNumero] = useState(false);
   const [numero, setNumero] = useState("");
+  const [archivio, setArchivio] = useState(false);
+  const [motivo, setMotivo] = useState("");
+  const [nota, setNota] = useState("");
 
   function esegui(fn: () => Promise<{ ok: boolean; error?: string }>) {
     setErrore(null);
@@ -42,6 +52,23 @@ export function AzioniRichiesta({
 
   if (convertita) {
     return <span className="status ok">Convertita in offerta</span>;
+  }
+
+  if (stato === "ARCHIVED") {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
+        <span className="status neutral">Archiviata</span>
+        <button
+          type="button"
+          className="btn small"
+          disabled={pending}
+          onClick={() => esegui(() => ripristinaRichiesta(requestId))}
+        >
+          {pending ? "Ripristino…" : "Ripristina"}
+        </button>
+        {errore && <span style={{ fontSize: 12, color: "var(--danger)", maxWidth: 280, textAlign: "right" }}>{errore}</span>}
+      </div>
+    );
   }
 
   return (
@@ -80,6 +107,57 @@ export function AzioniRichiesta({
             </button>
           </div>
         </div>
+      ) : archivio ? (
+        <div className="panel" style={{ padding: 14, display: "flex", flexDirection: "column", gap: 9, minWidth: 260 }}>
+          <div className="eyebrow">Motivo archiviazione</div>
+          <select
+            value={motivo}
+            onChange={(e) => setMotivo(e.target.value)}
+            style={{
+              background: "#fff",
+              border: "1px solid var(--border)",
+              borderRadius: 10,
+              padding: "9px 11px",
+              fontSize: 13,
+              fontWeight: 700,
+            }}
+          >
+            <option value="">Scegli un motivo…</option>
+            {MOTIVI_ARCHIVIAZIONE.map((m) => (
+              <option key={m.v} value={m.v}>
+                {m.l}
+              </option>
+            ))}
+          </select>
+          <textarea
+            value={nota}
+            onChange={(e) => setNota(e.target.value)}
+            rows={2}
+            placeholder={motivo === "ALTRO" ? "Obbligatoria per «Altro»" : "Nota facoltativa"}
+            style={{
+              background: "#fff",
+              border: "1px solid var(--border)",
+              borderRadius: 10,
+              padding: "9px 11px",
+              fontSize: 13,
+              fontFamily: "inherit",
+              resize: "vertical",
+            }}
+          />
+          <div style={{ display: "flex", gap: 6 }}>
+            <button
+              type="button"
+              className="btn small"
+              disabled={pending || !motivo || (motivo === "ALTRO" && !nota.trim())}
+              onClick={() => esegui(() => archiviaRichiesta(requestId, motivo, nota || null))}
+            >
+              {pending ? "Archivio…" : "Conferma archiviazione"}
+            </button>
+            <button type="button" className="btn small" disabled={pending} onClick={() => setArchivio(false)}>
+              Annulla
+            </button>
+          </div>
+        </div>
       ) : (
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
           <button
@@ -97,21 +175,34 @@ export function AzioniRichiesta({
         </div>
       )}
 
-      <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--muted)" }}>
-        Stato
-        <select
-          value={stato}
+      {!chiedeNumero && !archivio && (
+        <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--muted)" }}>
+          Stato
+          <select
+            value={stato}
+            disabled={pending}
+            onChange={(e) => esegui(() => cambiaStatoRichiesta(requestId, e.target.value))}
+            style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 9, padding: "6px 9px", fontSize: 12 }}
+          >
+            {STATI.map((s) => (
+              <option key={s.v} value={s.v}>
+                {s.l}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
+
+      {!chiedeNumero && !archivio && (
+        <button
+          type="button"
+          onClick={() => setArchivio(true)}
           disabled={pending}
-          onChange={(e) => esegui(() => cambiaStatoRichiesta(requestId, e.target.value))}
-          style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 9, padding: "6px 9px", fontSize: 12 }}
+          style={{ background: "none", border: "none", color: "var(--muted)", fontSize: 12, fontWeight: 600, cursor: "pointer", padding: 0 }}
         >
-          {STATI.map((s) => (
-            <option key={s.v} value={s.v}>
-              {s.l}
-            </option>
-          ))}
-        </select>
-      </label>
+          Archivia richiesta
+        </button>
+      )}
 
       {errore && <span style={{ fontSize: 12, color: "var(--danger)", maxWidth: 280, textAlign: "right" }}>{errore}</span>}
     </div>

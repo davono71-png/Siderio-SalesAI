@@ -35,6 +35,9 @@ type Scheda = {
     converted_offer_id: string | null;
     client_id: string | null;
     client_name: string | null;
+    archived_at: string | null;
+    archive_reason: string | null;
+    archive_note: string | null;
     client_email: string | null;
     client_phone: string | null;
     offer_number: string | null;
@@ -93,6 +96,14 @@ const STATO: Record<string, { l: string; t: string }> = {
 };
 
 const CANALE: Record<string, string> = { DIRECT: "Diretto", AGENCY: "Agenzia", UNKNOWN: "Canale da definire" };
+
+const MOTIVO_ARCHIVIAZIONE_LABEL: Record<string, string> = {
+  DUPLICATA: "Duplicata",
+  NON_PERTINENTE: "Non pertinente",
+  CLIENTE_NON_PROCEDE: "Il cliente non procede",
+  PROGETTO_SOSPESO: "Progetto sospeso",
+  ALTRO: "Altro",
+};
 
 const ICONA_EVENTO: Record<string, React.ReactNode> = {
   TELEFONATA: <PhoneIcon size={14} />,
@@ -313,6 +324,19 @@ export default async function RichiestaPage({ params }: { params: Promise<{ requ
         </div>
 
         <div className="side-stack">
+          {r.status === "ARCHIVED" && (
+            <section className="panel" style={{ padding: 20, borderColor: "var(--border)" }}>
+              <div className="section-title" style={{ marginBottom: 8 }}>
+                Archiviata
+              </div>
+              <div style={{ fontSize: 13, lineHeight: 1.5 }}>
+                {MOTIVO_ARCHIVIAZIONE_LABEL[r.archive_reason ?? ""] ?? r.archive_reason ?? "—"}
+                {r.archive_note ? ` — ${r.archive_note}` : ""}
+              </div>
+              <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 6 }}>{dateFmt(r.archived_at)}</div>
+            </section>
+          )}
+
           <section className="panel" style={{ padding: 20 }}>
             <div className="section-title" style={{ marginBottom: 12 }}>
               Dati della richiesta
