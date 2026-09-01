@@ -73,6 +73,74 @@ export async function aggiungiEvento(input: {
   return { ok: true };
 }
 
+const ALLEGATO_MAX_BYTES = 20 * 1024 * 1024;
+
+// Foto, PDF, disegni caricati a mano sulla richiesta: stesso pattern degli
+// eventi manuali (aggiungiEvento sopra), ma con un file invece di un testo.
+// Il file arriva già come bytes nella FormData (Server Action), quindi il
+// caricamento sullo storage avviene qui, non lato client.
+export async function caricaAllegatoRichiesta(requestId: string, formData: FormData) {
+  const userId = await currentUserId();
+  if (!userId) return { ok: false, error: "Sessione scaduta, rientra." };
+
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) return { ok: false, error: "Scegli un file." };
+  if (file.size > ALLEGATO_MAX_BYTES) return { ok: false, error: "File troppo grande (max 20MB)." };
+
+  const db = createServiceClient();
+  const nomeSicuro = file.name.replace(/[^\w.\-]+/g, "_");
+  const path = `${requestId}/${Date.now()}_${nomeSicuro}`;
+  const buffer = Buffer.from(await file.arrayBuffer());
+
+  const { error: uploadError } = await db.storage
+    .from("allegati-richieste")
+    .upload(path, buffer, { contentType: file.type || "application/octet-stream" });
+  if (uploadError) return { ok: false, error: uploadError.message };
+
+  const { error } = await db.schema("sales_ai").rpc("aggiungi_allegato_richiesta", {
+    p_request_id: requestId,
+    p_nome_file: file.name,
+    p_tipo_file: file.type || null,
+    p_dimensione_kb: Math.round(file.size / 1024),
+    p_storage_path: path,
+    p_user: userId,
+  });
+  if (error) {
+    await db.storage.from("allegati-richieste").remove([path]);
+    return { ok: false, error: error.message };
+  }
+
+  // Un allegato in più è informazione nuova per la valutazione, come un
+  // evento manuale: vale la pena rilanciare subito l'analisi.
+  try {
+    await smaltisciCoda(db);
+  } catch {
+    /* l'allegato è salvato comunque */
+  }
+
+  revalidatePath("/richieste");
+  revalidatePath(`/richieste/${requestId}`);
+  return { ok: true };
+}
+
+// Il bucket è privato: l'unico modo di aprire un allegato è un URL firmato
+// generato al momento, mai un link diretto salvato nella pagina.
+export async function apriAllegatoRichiesta(attachmentId: string) {
+  const db = createServiceClient();
+  const { data: allegato, error: fetchError } = await db
+    .schema("sales_ai")
+    .from("request_attachments")
+    .select("storage_path, nome_file")
+    .eq("id", attachmentId)
+    .maybeSingle();
+  if (fetchError || !allegato) return { ok: false, error: "Allegato non trovato." };
+
+  const { data, error } = await db.storage.from("allegati-richieste").createSignedUrl(allegato.storage_path, 120);
+  if (error || !data) return { ok: false, error: error?.message ?? "Impossibile generare il link." };
+
+  return { ok: true, url: data.signedUrl, nome: allegato.nome_file as string };
+}
+
 export async function cercaClienti(query: string) {
   const db = createServiceClient();
   const { data, error } = await db.schema("sales_ai").rpc("search_clients", {

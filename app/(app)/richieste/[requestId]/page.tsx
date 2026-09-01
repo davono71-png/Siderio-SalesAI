@@ -3,9 +3,11 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { PageShell, getUserLabel } from "@/components/PageShell";
 import { EventoForm } from "../EventoForm";
+import { AllegatoForm } from "../AllegatoForm";
 import { AzioniRichiesta } from "./AzioniRichiesta";
 import { ClienteRichiesta } from "./ClienteRichiesta";
-import { ArrowLeftIcon, MailInIcon, MailOutIcon, PhoneIcon, NoteIcon, BuildingIcon } from "@/components/icons";
+import { ApriAllegatoButton } from "./ApriAllegatoButton";
+import { ArrowLeftIcon, MailInIcon, MailOutIcon, PhoneIcon, NoteIcon, BuildingIcon, FileIcon } from "@/components/icons";
 import {
   ACTOR_LABEL,
   SUGGESTED_ACTION_LABEL,
@@ -80,8 +82,9 @@ type Scheda = {
     prossima_azione: string | null;
     data_followup: string | null;
     allegati: number;
+    allegato_id: string | null;
   }>;
-  conteggi: { email: number; eventi: number; analisi: number };
+  conteggi: { email: number; eventi: number; analisi: number; allegati: number };
   job_in_corso: boolean;
   ultimo_job_fallito: string | null;
 };
@@ -112,6 +115,7 @@ const ICONA_EVENTO: Record<string, React.ReactNode> = {
   MESSAGGIO: <NoteIcon size={14} />,
   NOTA: <NoteIcon size={14} />,
   ALTRO: <NoteIcon size={14} />,
+  ALLEGATO: <FileIcon size={14} />,
 };
 
 const ETICHETTA_EVENTO: Record<string, string> = {
@@ -121,6 +125,7 @@ const ETICHETTA_EVENTO: Record<string, string> = {
   MESSAGGIO: "Messaggio",
   NOTA: "Nota",
   ALTRO: "Altro",
+  ALLEGATO: "Allegato",
 };
 
 export default async function RichiestaPage({ params }: { params: Promise<{ requestId: string }> }) {
@@ -164,6 +169,7 @@ export default async function RichiestaPage({ params }: { params: Promise<{ requ
         {r.agency_source && <span className="tag purple">{r.agency_source}</span>}
         <span className="tag">
           {s.conteggi.email} email · {s.conteggi.eventi} {s.conteggi.eventi === 1 ? "evento" : "eventi"}
+          {s.conteggi.allegati > 0 ? ` · ${s.conteggi.allegati} allegat${s.conteggi.allegati === 1 ? "o" : "i"}` : ""}
         </span>
         {r.offer_number && <span className="status ok">Offerta #{r.offer_number}</span>}
       </div>
@@ -269,8 +275,9 @@ export default async function RichiestaPage({ params }: { params: Promise<{ requ
               <span className="panel-meta">{s.timeline.length} voci</span>
             </div>
 
-            <div style={{ marginBottom: 16 }}>
+            <div style={{ marginBottom: 16, display: "flex", gap: 8, flexWrap: "wrap" }}>
               <EventoForm requestId={r.id} />
+              <AllegatoForm requestId={r.id} />
             </div>
 
             {s.timeline.length === 0 && (
@@ -309,8 +316,9 @@ export default async function RichiestaPage({ params }: { params: Promise<{ requ
                           {v.testo.length > 400 ? `${v.testo.slice(0, 400)}…` : v.testo}
                         </div>
                       )}
-                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 6 }}>
-                        {v.allegati > 0 && <span className="tag">{v.allegati} allegati</span>}
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center", marginTop: 6 }}>
+                        {v.tipo === "ALLEGATO" && v.allegato_id && <ApriAllegatoButton attachmentId={v.allegato_id} />}
+                        {v.tipo !== "ALLEGATO" && v.allegati > 0 && <span className="tag">{v.allegati} allegati</span>}
                         {v.esito && <span className="tag">Esito: {v.esito}</span>}
                         {v.prossima_azione && <span className="tag purple">Poi: {v.prossima_azione}</span>}
                         {v.data_followup && <span className="tag">Follow-up {dateFmt(v.data_followup)}</span>}
