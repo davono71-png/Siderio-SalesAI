@@ -91,8 +91,10 @@ export default async function InboxPage() {
       <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 14, lineHeight: 1.55, maxWidth: 680 }}>
         Entrano solo le email in arrivo delle caselle commerciali, non ancora agganciate a un&apos;offerta o a
         una commessa: quelle già collegate alimentano direttamente l&apos;analisi dell&apos;opportunità e non
-        hanno bisogno di essere smistate. Chi scrive da un mittente mai commerciale viene archiviato senza
-        passare dal modello.{" "}
+        hanno bisogno di essere smistate. Prima di arrivare al modello, un filtro automatico scarta chi scrive
+        da un mittente mai commerciale, da un indirizzo tecnico (no-reply, notifiche) o con un contenuto tipico
+        di newsletter/marketing — a meno che il mittente non sia già un cliente o fornitore noto, nel qual caso
+        passa comunque al modello.{" "}
         {(c?.archiviate_non_commerciali ?? 0) > 0 && (
           <>Finora {c?.archiviate_non_commerciali} email sono state archiviate come non commerciali.</>
         )}
