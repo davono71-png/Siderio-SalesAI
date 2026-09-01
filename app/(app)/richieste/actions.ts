@@ -97,8 +97,9 @@ export async function caricaAllegatoRichiesta(requestId: string, formData: FormD
     .upload(path, buffer, { contentType: file.type || "application/octet-stream" });
   if (uploadError) return { ok: false, error: uploadError.message };
 
-  const { error } = await db.schema("sales_ai").rpc("aggiungi_allegato_richiesta", {
+  const { error } = await db.schema("sales_ai").rpc("aggiungi_allegato", {
     p_request_id: requestId,
+    p_root_offer_id: null,
     p_nome_file: file.name,
     p_tipo_file: file.type || null,
     p_dimensione_kb: Math.round(file.size / 1024),

@@ -3,8 +3,11 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Sidebar } from "@/components/Sidebar";
 import { AiPanel, type AiState } from "./AiPanel";
+import { EventoForm } from "./EventoForm";
+import { AllegatoForm } from "./AllegatoForm";
 import { runOpportunityAnalysis } from "./actions";
-import { currencyFmt, dateFmt } from "@/lib/sales-ai/display";
+import { ApriAllegatoButton } from "@/app/(app)/richieste/[requestId]/ApriAllegatoButton";
+import { currencyFmt, dateFmt, dateTimeFmt } from "@/lib/sales-ai/display";
 import {
   ArrowLeftIcon,
   BuildingIcon,
@@ -13,6 +16,8 @@ import {
   MailInIcon,
   MailOutIcon,
   ClockIcon,
+  PhoneIcon,
+  FileIcon,
 } from "@/components/icons";
 
 export const dynamic = "force-dynamic";
@@ -50,10 +55,43 @@ type OfferContext = {
   attachments: Array<{ id: string; nome_file: string; tipo_file: string | null; created_at: string }>;
 };
 
+type VoceCronologia = {
+  tipo: string;
+  id: string;
+  avvenuto_il: string;
+  interlocutore: string | null;
+  testo: string | null;
+  titolo: string | null;
+  esito: string | null;
+  prossima_azione: string | null;
+  data_followup: string | null;
+  allegato_id: string | null;
+};
+
 const SUITE_STATUS_LABEL: Record<string, string> = {
   draft: "Bozza",
   sent: "Inviata",
   accepted: "Accettata",
+};
+
+const ICONA_EVENTO: Record<string, React.ReactNode> = {
+  TELEFONATA: <PhoneIcon size={14} />,
+  INCONTRO: <BuildingIcon size={14} />,
+  SOPRALLUOGO: <BuildingIcon size={14} />,
+  MESSAGGIO: <NoteIcon size={14} />,
+  NOTA: <NoteIcon size={14} />,
+  ALTRO: <NoteIcon size={14} />,
+  ALLEGATO: <FileIcon size={14} />,
+};
+
+const ETICHETTA_EVENTO: Record<string, string> = {
+  TELEFONATA: "Telefonata",
+  INCONTRO: "Incontro",
+  SOPRALLUOGO: "Sopralluogo",
+  MESSAGGIO: "Messaggio",
+  NOTA: "Nota",
+  ALTRO: "Altro",
+  ALLEGATO: "Allegato",
 };
 
 export default async function OffertaPage({
@@ -111,6 +149,11 @@ export default async function OffertaPage({
       // La pagina resta comunque utilizzabile con l'ultima analisi disponibile.
     }
   }
+
+  const { data: eventiData } = aiState?.root_offer_id
+    ? await supabase.schema("sales_ai").rpc("get_offer_events_timeline", { p_root_offer_id: aiState.root_offer_id })
+    : { data: [] };
+  const eventi = (eventiData ?? []) as VoceCronologia[];
 
   const timeline = [
     { label: "Offerta creata", date: ctx.created_at },
@@ -216,6 +259,57 @@ export default async function OffertaPage({
                           {e.corpo}
                         </div>
                       )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="panel" style={{ padding: "20px 22px", display: "flex", flexDirection: "column", gap: 14 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
+                <div className="section-title">
+                  <NoteIcon size={16} />
+                  Eventi e allegati
+                </div>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <EventoForm rootOfferId={ctx.offer_id} offerNumber={ctx.offer_number} />
+                  <AllegatoForm rootOfferId={ctx.offer_id} offerNumber={ctx.offer_number} />
+                </div>
+              </div>
+
+              {eventi.length === 0 && (
+                <div style={{ fontSize: 13, color: "var(--muted)" }}>
+                  Ancora niente. Registra una telefonata, un sopralluogo o carica una foto: Sales AI ne tiene conto
+                  nella prossima valutazione.
+                </div>
+              )}
+
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                {eventi.map((v) => (
+                  <div key={v.id} style={{ display: "flex", gap: 12, padding: "12px 0", borderTop: "1px solid var(--border)" }}>
+                    <span style={{ color: "var(--accent)", marginTop: 3, display: "flex" }}>
+                      {ICONA_EVENTO[v.tipo] ?? <NoteIcon size={14} />}
+                    </span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "baseline", justifyContent: "space-between" }}>
+                        <span style={{ fontSize: 13, fontWeight: 700 }}>
+                          {ETICHETTA_EVENTO[v.tipo] ?? v.tipo}
+                          {v.interlocutore ? ` · ${v.interlocutore}` : ""}
+                        </span>
+                        <span style={{ fontSize: 11, color: "var(--muted)", fontWeight: 600 }}>{dateTimeFmt(v.avvenuto_il)}</span>
+                      </div>
+                      {v.titolo && <div style={{ fontSize: 13, marginTop: 2 }}>{v.titolo}</div>}
+                      {v.testo && (
+                        <div style={{ fontSize: 12.5, color: "var(--muted)", marginTop: 4, lineHeight: 1.5, whiteSpace: "pre-wrap" }}>
+                          {v.testo.length > 400 ? `${v.testo.slice(0, 400)}…` : v.testo}
+                        </div>
+                      )}
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center", marginTop: 6 }}>
+                        {v.tipo === "ALLEGATO" && v.allegato_id && <ApriAllegatoButton attachmentId={v.allegato_id} />}
+                        {v.esito && <span className="tag">Esito: {v.esito}</span>}
+                        {v.prossima_azione && <span className="tag purple">Poi: {v.prossima_azione}</span>}
+                        {v.data_followup && <span className="tag">Follow-up {dateFmt(v.data_followup)}</span>}
+                      </div>
                     </div>
                   </div>
                 ))}
