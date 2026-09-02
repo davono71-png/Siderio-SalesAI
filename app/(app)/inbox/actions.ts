@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/sales-ai/supabase.js";
-import { classificaEmail, statoDopoClassificazione } from "@/lib/sales-ai/triage.js";
+import { triageInboxBatch } from "@/lib/sales-ai/inboxTriage.js";
 
 async function currentUserId() {
   const authed = await createClient();
@@ -15,74 +15,21 @@ async function currentUserId() {
 
 // Prende in carico le email nuove e ne classifica un lotto. Il filtro
 // deterministico sui mittenti chiude da solo la maggior parte del volume: al
-// modello arriva solo quello che resta.
+// modello arriva solo quello che resta. Stessa logica del worker pg_cron
+// (app/api/sales-ai/triage-inbox): questo bottone resta per forzare un
+// giro subito, non è più l'unico modo per far avanzare la coda.
 export async function analizzaInbox(quante = 15) {
   const userId = await currentUserId();
   if (!userId) return { ok: false, error: "Sessione scaduta, rientra." };
 
   const db = createServiceClient();
-
-  const { error: ingestError } = await db.schema("sales_ai").rpc("triage_ingest", { p_limit: 500 });
-  if (ingestError) return { ok: false, error: ingestError.message };
-
-  const { data: daFare, error: listError } = await db
-    .schema("sales_ai")
-    .from("email_triage")
-    .select("email_id")
-    .eq("triage_status", "TO_ANALYZE")
-    .limit(quante);
-  if (listError) return { ok: false, error: listError.message };
-
-  const ids = (daFare ?? []).map((r: { email_id: string }) => r.email_id);
-  if (ids.length === 0) {
+  try {
+    const { analizzate, falliti } = await triageInboxBatch(db, { quante });
     revalidatePath("/inbox");
-    return { ok: true, analizzate: 0, falliti: 0 };
+    return { ok: true, analizzate, falliti };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Smistamento fallito." };
   }
-
-  const { data: emails, error: mailError } = await db
-    .from("email_messaggi")
-    .select("id, da, oggetto, corpo, allegati, created_at, account_id")
-    .in("id", ids);
-  if (mailError) return { ok: false, error: mailError.message };
-
-  let analizzate = 0;
-  let falliti = 0;
-
-  for (const mail of emails ?? []) {
-    try {
-      const esito = await classificaEmail({
-        da: mail.da,
-        oggetto: mail.oggetto,
-        corpo: mail.corpo,
-        allegati: mail.allegati,
-        created_at: mail.created_at,
-      });
-
-      const { error } = await db
-        .schema("sales_ai")
-        .from("email_triage")
-        .update({
-          classification: esito.classification,
-          confidence: esito.confidence,
-          reason: esito.reason,
-          triage_status: statoDopoClassificazione(esito.classification),
-          model: esito.model,
-          prompt_version: esito.prompt_version,
-          analyzed_at: new Date().toISOString(),
-        })
-        .eq("email_id", mail.id);
-
-      if (error) falliti += 1;
-      else analizzate += 1;
-    } catch {
-      // Una email che fa fallire il modello non deve bloccare il lotto:
-      // resta TO_ANALYZE e verrà ritentata al giro dopo.
-      falliti += 1;
-    }
-  }
-
-  revalidatePath("/inbox");
-  return { ok: true, analizzate, falliti };
 }
 
 export async function creaRichiestaDaEmail(emailId: string, titolo: string) {
