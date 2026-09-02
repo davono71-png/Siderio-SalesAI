@@ -1,23 +1,56 @@
--- TEMPLATE: NON ESEGUIRE SENZA SOSTITUIRE URL E SEGRETO.
--- Il progetto Siderio usa già pg_cron + pg_net: riutilizzare lo stesso pattern.
--- Frequenza proposta per la V1: ogni 5 minuti.
--- Se serve maggiore reattività, Davide può ridurre il tempo compatibilmente con i limiti del piano.
-
--- Esempio concettuale:
+-- STATO: i due job pg_cron sono registrati e attivi (v. cron.job), il
+-- segreto è salvato in cad.segreti (nome = 'sales_ai_cron'), stesso pattern
+-- già in uso dal job 'pulizia'. L'unico pezzo mancante è la variabile
+-- d'ambiente SALES_AI_CRON_SECRET su Vercel: senza quella authorizeWorker()
+-- risponde 503 a ogni invocazione e i job restano innocui ma inattivi.
+--
+-- Rev.1 §09: "a regime la classificazione deve partire automaticamente
+-- all'arrivo delle email" — process-next (job/analisi request e offerta) e
+-- triage-inbox (smistamento email) girano ogni 5 minuti, indipendenti l'uno
+-- dall'altro. Il pulsante manuale in pagina resta come forzatura.
+--
+-- Già eseguito (riportato qui solo come riferimento, non da rilanciare):
+--
+-- insert into cad.segreti (nome, valore) values ('sales_ai_cron', '<segreto generato>');
+--
 -- select cron.schedule(
 --   'siderio-sales-ai-process-next',
 --   '*/5 * * * *',
 --   $$
 --   select net.http_post(
---     url := 'https://<SALES_AI_VERCEL_DOMAIN>/api/sales-ai/process-next',
+--     url := 'https://siderio-sales-ai.vercel.app/api/sales-ai/process-next',
 --     headers := jsonb_build_object(
 --       'Content-Type', 'application/json',
---       'x-sales-ai-cron-secret', '<SALES_AI_CRON_SECRET>'
+--       'x-sales-ai-cron-secret', (select valore from cad.segreti where nome = 'sales_ai_cron')
 --     ),
---     body := '{}'::jsonb
+--     body := '{}'::jsonb,
+--     timeout_milliseconds := 55000
 --   );
 --   $$
 -- );
 --
--- IMPORTANTE: non lasciare il segreto in chiaro nello storico SQL di produzione.
--- Usare il meccanismo di secret/Vault già adottato dal progetto quando possibile.
+-- select cron.schedule(
+--   'siderio-sales-ai-triage-inbox',
+--   '*/5 * * * *',
+--   $$
+--   select net.http_post(
+--     url := 'https://siderio-sales-ai.vercel.app/api/sales-ai/triage-inbox',
+--     headers := jsonb_build_object(
+--       'Content-Type', 'application/json',
+--       'x-sales-ai-cron-secret', (select valore from cad.segreti where nome = 'sales_ai_cron')
+--     ),
+--     body := '{}'::jsonb,
+--     timeout_milliseconds := 55000
+--   );
+--   $$
+-- );
+--
+-- Per disattivare temporaneamente (es. debug), senza cancellare la
+-- schedulazione:
+--   select cron.alter_job((select jobid from cron.job where jobname = 'siderio-sales-ai-process-next'), active := false);
+--   select cron.alter_job((select jobid from cron.job where jobname = 'siderio-sales-ai-triage-inbox'), active := false);
+--
+-- Passo che resta a Davide: impostare SALES_AI_CRON_SECRET su Vercel con lo
+-- stesso valore salvato in cad.segreti, poi rifare il deploy (le variabili
+-- d'ambiente su Vercel vengono lette dalle Function solo a partire dal
+-- deploy successivo alla modifica, non in tempo reale).
