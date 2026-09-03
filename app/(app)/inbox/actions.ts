@@ -28,7 +28,11 @@ export async function analizzaInbox(quante = 15) {
     revalidatePath("/inbox");
     return { ok: true, analizzate, falliti };
   } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : "Smistamento fallito." };
+    // Gli errori Postgrest non sono sempre istanze di Error: senza questo
+    // fallback il messaggio reale spariva dietro un generico "Smistamento
+    // fallito.", inutile per capire cosa non ha funzionato.
+    const messaggio = (e as { message?: string } | null)?.message;
+    return { ok: false, error: messaggio || "Smistamento fallito." };
   }
 }
 
