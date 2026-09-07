@@ -33,6 +33,10 @@ function scomponiMittente(da: string | null) {
 const VERDETTO: Record<string, { label: string; tone: string }> = {
   NEW_REQUEST: { label: "Nuova richiesta", tone: "info" },
   EXISTING_OPPORTUNITY: { label: "Possibile match", tone: "warn" },
+  OFFER_CONFIRMED: { label: "Conferma offerta", tone: "warn" },
+  CUSTOMER_ORDER: { label: "Ordine cliente in corso", tone: "neutral" },
+  SUPPLIER_ORDER: { label: "Fornitore/acquisti", tone: "neutral" },
+  ADMINISTRATIVE: { label: "Amministrativa", tone: "neutral" },
   UNCERTAIN: { label: "Da verificare", tone: "neutral" },
   NOT_COMMERCIAL: { label: "Non commerciale", tone: "neutral" },
 };
