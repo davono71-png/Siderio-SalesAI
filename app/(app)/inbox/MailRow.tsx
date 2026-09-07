@@ -1,7 +1,16 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { creaRichiestaDaEmail, confermaMatchOfferta, segnaNonCommerciale } from "./actions";
+import {
+  creaRichiestaDaEmail,
+  confermaMatchOfferta,
+  segnaNonCommerciale,
+  offertaAnnullataPersa,
+  offertaTrasformataOrdine,
+  ordineClienteInCorso,
+  fornitoreAcquisti,
+  duplicatoDaIgnorare,
+} from "./actions";
 import { dateTimeFmt } from "@/lib/sales-ai/display";
 
 export type MailTriage = {
@@ -47,6 +56,8 @@ export function MailRow({ m }: { m: MailTriage }) {
   const [errore, setErrore] = useState<string | null>(null);
   const [chiedeOfferta, setChiedeOfferta] = useState(false);
   const [numeroOfferta, setNumeroOfferta] = useState(m.offerta_proposta ?? "");
+  const [chiedeCommessa, setChiedeCommessa] = useState(false);
+  const [numeroCommessa, setNumeroCommessa] = useState("");
 
   const { nome, indirizzo } = scomponiMittente(m.mittente);
   const daAnalizzare = m.triage_status === "TO_ANALYZE";
@@ -113,7 +124,7 @@ export function MailRow({ m }: { m: MailTriage }) {
         )}
 
         {chiedeOfferta ? (
-          <div className="riga">
+          <div className="riga" style={{ flexWrap: "wrap" }}>
             <input
               value={numeroOfferta}
               onChange={(e) => setNumeroOfferta(e.target.value)}
@@ -134,9 +145,53 @@ export function MailRow({ m }: { m: MailTriage }) {
               disabled={pending}
               onClick={() => esegui(() => confermaMatchOfferta(m.email_id, numeroOfferta), "Agganciata")}
             >
-              Aggancia
+              Conferma offerta
+            </button>
+            <button
+              type="button"
+              className="btn small"
+              disabled={pending}
+              onClick={() => esegui(() => offertaTrasformataOrdine(m.email_id, numeroOfferta), "Trasformata in ordine")}
+            >
+              Già trasformata in ordine
+            </button>
+            <button
+              type="button"
+              className="btn small"
+              disabled={pending}
+              onClick={() => esegui(() => offertaAnnullataPersa(m.email_id, numeroOfferta), "Annullata/persa")}
+            >
+              Annullata/persa
             </button>
             <button type="button" className="btn small" disabled={pending} onClick={() => setChiedeOfferta(false)}>
+              Annulla
+            </button>
+          </div>
+        ) : chiedeCommessa ? (
+          <div className="riga">
+            <input
+              value={numeroCommessa}
+              onChange={(e) => setNumeroCommessa(e.target.value)}
+              placeholder="n° commessa"
+              aria-label="Numero commessa"
+              style={{
+                width: 100,
+                background: "#fff",
+                border: "1px solid var(--border)",
+                borderRadius: 10,
+                padding: "6px 9px",
+                fontSize: 13,
+              }}
+            />
+            <button
+              type="button"
+              className="btn small dark"
+              disabled={pending}
+              onClick={() => esegui(() => ordineClienteInCorso(m.email_id, numeroCommessa), "Collegata alla commessa")}
+            >
+              Collega
+            </button>
+            <button type="button" className="btn small" disabled={pending} onClick={() => setChiedeCommessa(false)}>
               Annulla
             </button>
           </div>
@@ -160,14 +215,35 @@ export function MailRow({ m }: { m: MailTriage }) {
                 {m.offerta_proposta ? "Conferma match" : "Collega a offerta"}
               </button>
             </div>
-            <button
-              type="button"
-              className="btn small"
-              disabled={pending}
-              onClick={() => esegui(() => segnaNonCommerciale(m.email_id), "Archiviata")}
-            >
-              Non commerciale
-            </button>
+            <div className="riga" style={{ flexWrap: "wrap" }}>
+              <button type="button" className="btn small" disabled={pending} onClick={() => setChiedeCommessa(true)}>
+                Ordine cliente in corso
+              </button>
+              <button
+                type="button"
+                className="btn small"
+                disabled={pending}
+                onClick={() => esegui(() => fornitoreAcquisti(m.email_id), "Fornitore/acquisti")}
+              >
+                Fornitore/acquisti
+              </button>
+              <button
+                type="button"
+                className="btn small"
+                disabled={pending}
+                onClick={() => esegui(() => segnaNonCommerciale(m.email_id), "Archiviata")}
+              >
+                Non commerciale
+              </button>
+              <button
+                type="button"
+                className="btn small"
+                disabled={pending}
+                onClick={() => esegui(() => duplicatoDaIgnorare(m.email_id), "Duplicato/ignorata")}
+              >
+                Duplicato/da ignorare
+              </button>
+            </div>
           </>
         )}
       </div>
