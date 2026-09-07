@@ -11,7 +11,7 @@ export function AnalyzeButton({ daAnalizzare }: { daAnalizzare: number }) {
   function lancia() {
     setEsito(null);
     startTransition(async () => {
-      const res = await analizzaInbox(15);
+      const res = await analizzaInbox(8);
       if (!res.ok) {
         setEsito(res.error ?? "Analisi fallita.");
         return;
