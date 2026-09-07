@@ -253,7 +253,9 @@ export default async function OffertaPage({
                         <span style={{ fontSize: 13, fontWeight: 700 }}>{e.da ?? "—"}</span>
                         <span style={{ fontSize: 11, color: "var(--muted)", fontWeight: 600 }}>{dateFmt(e.created_at)}</span>
                       </div>
-                      <div style={{ fontSize: 13 }}>{e.oggetto ?? "(senza oggetto)"}</div>
+                      <Link href={`/inbox/${e.id}`} style={{ fontSize: 13, color: "var(--accent)", fontWeight: 600 }}>
+                        {e.oggetto ?? "(senza oggetto)"}
+                      </Link>
                       {e.corpo && (
                         <div style={{ fontSize: 12, color: "var(--muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {e.corpo}

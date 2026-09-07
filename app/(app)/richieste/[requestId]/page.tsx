@@ -310,7 +310,13 @@ export default async function RichiestaPage({ params }: { params: Promise<{ requ
                         </span>
                         <span style={{ fontSize: 11, color: "var(--muted)", fontWeight: 600 }}>{dateTimeFmt(v.avvenuto_il)}</span>
                       </div>
-                      {v.titolo && <div style={{ fontSize: 13, marginTop: 2 }}>{v.titolo}</div>}
+                      {v.titolo && isEmail ? (
+                        <Link href={`/inbox/${v.id}`} style={{ fontSize: 13, marginTop: 2, display: "block", color: "var(--accent)", fontWeight: 600 }}>
+                          {v.titolo}
+                        </Link>
+                      ) : (
+                        v.titolo && <div style={{ fontSize: 13, marginTop: 2 }}>{v.titolo}</div>
+                      )}
                       {v.testo && (
                         <div style={{ fontSize: 12.5, color: "var(--muted)", marginTop: 4, lineHeight: 1.5, whiteSpace: "pre-wrap" }}>
                           {v.testo.length > 400 ? `${v.testo.slice(0, 400)}…` : v.testo}

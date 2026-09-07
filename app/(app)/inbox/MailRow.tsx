@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import {
   creaRichiestaDaEmail,
   confermaMatchOfferta,
@@ -99,8 +100,14 @@ export function MailRow({ m }: { m: MailTriage }) {
       </div>
 
       <div style={{ minWidth: 0 }}>
-        <div className="mail-subject">{m.oggetto ?? "(senza oggetto)"}</div>
-        {m.anteprima && <div className="mail-preview">{m.anteprima}</div>}
+        <Link href={`/inbox/${m.email_id}`} className="mail-subject" style={{ color: "inherit", textDecoration: "none" }}>
+          {m.oggetto ?? "(senza oggetto)"}
+        </Link>
+        {m.anteprima && (
+          <Link href={`/inbox/${m.email_id}`} className="mail-preview" style={{ color: "inherit", textDecoration: "none", display: "block" }}>
+            {m.anteprima}
+          </Link>
+        )}
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
           {m.allegati > 0 && <span className="tag">{m.allegati} allegati</span>}
           {m.offerta_proposta && (
