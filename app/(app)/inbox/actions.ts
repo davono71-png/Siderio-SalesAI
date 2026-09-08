@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/sales-ai/supabase.js";
 import { triageInboxBatch } from "@/lib/sales-ai/inboxTriage.js";
+import type { MailTriage } from "./MailRow";
 
 async function currentUserId() {
   const authed = await createClient();
@@ -18,6 +19,18 @@ async function currentUserId() {
 // modello arriva solo quello che resta. Stessa logica del worker pg_cron
 // (app/api/sales-ai/triage-inbox): questo bottone resta per forzare un
 // giro subito, non è più l'unico modo per far avanzare la coda.
+// Elenco dietro ogni card KPI della Inbox ("Da smistare", "Nuove
+// richieste", "Possibili match"): stessa card cliccabile già introdotta
+// nel Command Center, applicata qui su richiesta di Davide. La lista
+// inline della pagina si ferma a 100 righe; con "Da smistare" oltre quel
+// numero, il popup è l'unico modo per vedere il resto.
+export async function getInboxKpiList(kpi: "DA_SMISTARE" | "NUOVE_RICHIESTE" | "POSSIBILI_MATCH") {
+  const db = createServiceClient();
+  const { data, error } = await db.schema("sales_ai").rpc("get_inbox_kpi_list", { p_kpi: kpi });
+  if (error) return { ok: false as const, error: error.message };
+  return { ok: true as const, rows: (data ?? []) as MailTriage[] };
+}
+
 export async function analizzaInbox(quante = 15) {
   const userId = await currentUserId();
   if (!userId) return { ok: false, error: "Sessione scaduta, rientra." };

@@ -33,14 +33,14 @@ export type MailTriage = {
 };
 
 // Nome leggibile dal campo "da", che arriva come `Mario Rossi <m@rossi.it>`.
-function scomponiMittente(da: string | null) {
+export function scomponiMittente(da: string | null) {
   const s = (da ?? "").trim();
   const m = s.match(/^(.*?)\s*<([^>]+)>$/);
   if (m) return { nome: m[1].replace(/^["']|["']$/g, "").trim() || m[2], indirizzo: m[2] };
   return { nome: s, indirizzo: s };
 }
 
-const VERDETTO: Record<string, { label: string; tone: string }> = {
+export const VERDETTO: Record<string, { label: string; tone: string }> = {
   NEW_REQUEST: { label: "Nuova richiesta", tone: "info" },
   EXISTING_OPPORTUNITY: { label: "Possibile match", tone: "warn" },
   OFFER_CONFIRMED: { label: "Conferma offerta", tone: "warn" },

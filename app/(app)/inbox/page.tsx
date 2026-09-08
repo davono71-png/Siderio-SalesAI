@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { PageShell, EmptyState, ErrorState, getUserLabel } from "@/components/PageShell";
 import { MailRow, type MailTriage } from "./MailRow";
 import { AnalyzeButton } from "./AnalyzeButton";
+import { InboxKpiCards } from "./InboxKpiCards";
 
 export const dynamic = "force-dynamic";
 
@@ -37,23 +38,13 @@ export default async function InboxPage() {
       subtitle="Solo le email che richiedono una decisione commerciale. Il resto è già stato tolto di mezzo."
       aside={<AnalyzeButton daAnalizzare={c?.da_analizzare ?? 0} />}
     >
-      <div className="cards-3" style={{ marginBottom: 18 }}>
-        <div className="card">
-          <h3>Da smistare</h3>
-          <div className="big">{c?.da_smistare ?? 0}</div>
-          <p>Richiedono una tua decisione.</p>
-        </div>
-        <div className="card">
-          <h3>Nuove richieste</h3>
-          <div className="big">{c?.nuove_richieste ?? 0}</div>
-          <p>Possibili opportunità nuove.</p>
-        </div>
-        <div className="card">
-          <h3>Possibili match</h3>
-          <div className="big">{c?.possibili_match ?? 0}</div>
-          <p>Riguardano un lavoro già in corso.</p>
-        </div>
-      </div>
+      <InboxKpiCards
+        valori={{
+          DA_SMISTARE: c?.da_smistare ?? 0,
+          NUOVE_RICHIESTE: c?.nuove_richieste ?? 0,
+          POSSIBILI_MATCH: c?.possibili_match ?? 0,
+        }}
+      />
 
       <section className="panel" style={{ padding: 16 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 14, gap: 12, flexWrap: "wrap" }}>
