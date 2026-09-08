@@ -9,6 +9,7 @@ import {
   dateFmt,
   dateTimeFmt,
 } from "@/lib/sales-ai/display";
+import { KpiCards } from "./KpiCards";
 
 export const dynamic = "force-dynamic";
 
@@ -124,36 +125,14 @@ export default async function OggiPage() {
         )}
 
         {kpis && (
-          <div className="kpis">
-            <div className="kpi">
-              <div className="top">
-                <span className="label">Offerte aperte</span>
-                <span className="dot info" />
-              </div>
-              <div className="value">{kpis.offers_open}</div>
-            </div>
-            <div className="kpi">
-              <div className="top">
-                <span className="label">Ferme da 14+ giorni</span>
-                <span className="dot warn" />
-              </div>
-              <div className="value">{kpis.offers_stale}</div>
-            </div>
-            <div className="kpi">
-              <div className="top">
-                <span className="label">Azioni aperte</span>
-                <span className="dot danger" />
-              </div>
-              <div className="value">{kpis.open_actions}</div>
-            </div>
-            <div className="kpi">
-              <div className="top">
-                <span className="label">Analizzate dall&apos;AI</span>
-                <span className="dot ok" />
-              </div>
-              <div className="value">{kpis.offers_analyzed}</div>
-            </div>
-          </div>
+          <KpiCards
+            valori={{
+              OFFERTE_APERTE: kpis.offers_open,
+              FERME_14GG: kpis.offers_stale,
+              AZIONI_APERTE: kpis.open_actions,
+              ANALIZZATE_AI: kpis.offers_analyzed,
+            }}
+          />
         )}
 
         <div className="grid-2col">
