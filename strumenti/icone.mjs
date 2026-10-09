@@ -28,16 +28,21 @@ const SCURO = "#5e4ed8";
 //
 // Per questo la "maskable" tiene il segno più piccolo: di quel quadrato il
 // telefono garantisce solo la parte centrale, e il resto se lo può mangiare.
+//
+// Le icone "any", invece, il PC di Windows le mette sulla scrivania così come
+// sono, senza ritagliare: per stare in fila con le altre app Siderio hanno gli
+// angoli stondati, trasparenti, con un raggio del 22% del lato (misurato su
+// Siderio Rilievi). L'icona per iPhone resta piena: lì stonda il telefono.
 const ICONE = [
-  { nome: "public/icons/icon-512.png", lato: 512, quota: 0.7 },
-  { nome: "public/icons/icon-192.png", lato: 192, quota: 0.7 },
+  { nome: "public/icons/icon-512.png", lato: 512, quota: 0.7, stondata: true },
+  { nome: "public/icons/icon-192.png", lato: 192, quota: 0.7, stondata: true },
   { nome: "public/icons/icon-512-maskable.png", lato: 512, quota: 0.52 },
-  { nome: "app/icon.png", lato: 512, quota: 0.7 },
+  { nome: "app/icon.png", lato: 512, quota: 0.7, stondata: true },
   { nome: "app/apple-icon.png", lato: 180, quota: 0.7 },
 ];
 
-const pagina = (lato, quota) => `<!doctype html><html><body style="margin:0">
-<div style="width:${lato}px;height:${lato}px;
+const pagina = (lato, quota, stondata) => `<!doctype html><html><body style="margin:0;background:transparent">
+<div style="width:${lato}px;height:${lato}px;${stondata ? "border-radius:22%;" : ""}
             background:linear-gradient(135deg, ${CHIARO}, ${SCURO});
             display:grid;place-items:center">
   <svg viewBox="${RIQUADRO}" style="width:${lato}px;height:${Math.round(lato * quota)}px">
@@ -49,10 +54,10 @@ const browser = await chromium.launch({
   executablePath: process.env.CHROMIUM ?? "/opt/pw-browsers/chromium-1194/chrome-linux/chrome",
   args: ["--no-sandbox"],
 });
-for (const { nome, lato, quota } of ICONE) {
+for (const { nome, lato, quota, stondata } of ICONE) {
   const p = await browser.newPage({ viewport: { width: lato, height: lato } });
-  await p.setContent(pagina(lato, quota));
-  await p.screenshot({ path: nome });
+  await p.setContent(pagina(lato, quota, stondata));
+  await p.screenshot({ path: nome, omitBackground: true });
   await p.close();
   console.log("scritta", nome, `${lato}×${lato}`);
 }
